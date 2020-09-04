@@ -7,6 +7,8 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <!-- These two ImageView items are drawn back-to-back horizontally and drug across the screen to
+            create the scrolling effect-->
     <ImageView
         android:id="@+id/loginBackgroundOne"
         android:layout_width="match_parent"
@@ -26,9 +28,11 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+
     <EditText
         android:id="@+id/editUsername"
         android:background="@drawable/text_focus"
+        android:textCursorDrawable="@null"
         android:layout_width="wrap_content"
         android:layout_height="38dp"
         android:drawableStart="@drawable/ic_account"
@@ -50,6 +54,7 @@
     <EditText
         android:id="@+id/editPassword"
         android:background="@drawable/text_focus"
+        android:textCursorDrawable="@null"
         android:layout_width="wrap_content"
         android:layout_height="38dp"
         android:drawableStart="@drawable/ic_lock"
