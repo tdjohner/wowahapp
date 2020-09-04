@@ -3,6 +3,7 @@ package com.example.wowahapp
 import android.animation.ValueAnimator
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Window
 import android.view.animation.LinearInterpolator
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -11,6 +12,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // moving background from https://stackoverflow.com/questions/36894384/android-move-background-continuously-with-animation
         val backgroundOne = loginBackgroundOne
         val backgroundTwo= loginBackgroundTwo
 
