@@ -12,7 +12,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // moving background from https://stackoverflow.com/questions/36894384/android-move-background-continuously-with-animation
+        scrollingBackground();
+    }
+
+    // moving background from https://stackoverflow.com/questions/36894384/android-move-background-continuously-with-animation
+    private fun scrollingBackground() {
+
         val backgroundOne = loginBackgroundOne
         val backgroundTwo= loginBackgroundTwo
 
@@ -29,4 +34,5 @@ class MainActivity : AppCompatActivity() {
         }
         animator.start()
     }
+
 }
