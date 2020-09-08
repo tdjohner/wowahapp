@@ -1,10 +1,12 @@
-package com.example.wowahapp
+package com.wowahapp
 
 import android.animation.ValueAnimator
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.Window
+import android.view.KeyEvent
+import android.view.View
 import android.view.animation.LinearInterpolator
+
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -12,10 +14,28 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // https://stackoverflow.com/questions/47298935/handling-enter-key-on-edittext-kotlin-android
+        editPassword.setOnKeyListener(View.OnKeyListener { _, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
+                //hash username into var
+                //hash password into var
+                    sendLoginRequest()
+                return@OnKeyListener true
+            }
+            false
+        })
+
+
         scrollingBackground();
     }
 
-    // moving background from https://stackoverflow.com/questions/36894384/android-move-background-continuously-with-animation
+    // Validate user against user database
+    private fun sendLoginRequest() {
+
+
+    }
+
+    // login wallpaper moving background from https://stackoverflow.com/questions/36894384/android-move-background-continuously-with-animation
     private fun scrollingBackground() {
 
         val backgroundOne = loginBackgroundOne
