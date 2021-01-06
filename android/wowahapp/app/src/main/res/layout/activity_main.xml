@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:windowSoftInputMode="adjustNothing"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <!-- These two ImageView items are drawn back-to-back horizontally and drug across the screen to
+            create the scrolling effect-->
+    <ImageView
+        android:id="@+id/loginBackgroundOne"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/longboy2"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <ImageView
+        android:id="@+id/loginBackgroundTwo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/longboy2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+    <EditText
+        android:id="@+id/editUsername"
+        android:background="@drawable/text_focus"
+        android:textCursorDrawable="@null"
+        android:layout_width="wrap_content"
+        android:layout_height="38dp"
+        android:drawableStart="@drawable/ic_account"
+        android:drawablePadding="12dp"
+        android:paddingStart="8dp"
+        android:paddingEnd ="12dp"
+        android:hint="Username"
+        android:textColor="#FFFFFFFF"
+        android:textColorHint="#FFFFFFFF"
+        android:inputType="textVisiblePassword"
+        android:selectAllOnFocus="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.504"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.234" />
+
+    <EditText
+        android:id="@+id/editPassword"
+        android:background="@drawable/text_focus"
+        android:textCursorDrawable="@null"
+        android:layout_width="wrap_content"
+        android:layout_height="38dp"
+        android:drawableStart="@drawable/ic_lock"
+        android:drawablePadding="12dp"
+        android:paddingStart="8dp"
+        android:paddingEnd ="12dp"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:textColor="#FFFFFFFF"
+        android:textColorHint="#FFFFFFFF"
+        android:selectAllOnFocus="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.507"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.421" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
