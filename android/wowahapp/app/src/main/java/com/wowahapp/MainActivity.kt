@@ -1,6 +1,7 @@
 package com.wowahapp
 
 import android.animation.ValueAnimator
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.KeyEvent
@@ -17,9 +18,14 @@ class MainActivity : AppCompatActivity() {
         // https://stackoverflow.com/questions/47298935/handling-enter-key-on-edittext-kotlin-android
         editPassword.setOnKeyListener(View.OnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
+
+                // For now we just immediately go to the Home Activity
+                val homeIntent = Intent(this, HomeActivity::class.java)
+                startActivity(homeIntent)
+
                 //hash username into var
                 //hash password into var
-                    sendLoginRequest()
+                sendLoginRequest()
                 return@OnKeyListener true
             }
             false
