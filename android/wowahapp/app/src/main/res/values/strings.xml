@@ -2,4 +2,6 @@
     <string name="app_name">wowahapp</string>
     <string name="add_recipe">+ Add Recipe</string>
     <string name="confirm">Confirm</string>
+    <string name="backToLogin">Back to Login</string>
+    <string name="logout"><![CDATA[< Logout]]></string>
 </resources>

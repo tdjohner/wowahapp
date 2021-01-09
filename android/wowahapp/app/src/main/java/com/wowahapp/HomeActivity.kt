@@ -4,10 +4,12 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
+import android.widget.TextView
 
 class HomeActivity : AppCompatActivity() {
 
     lateinit var addRecipeButton : Button
+    lateinit var logoutTextView : TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,5 +20,12 @@ class HomeActivity : AppCompatActivity() {
             val addRecipeIntent = Intent(this, AddRecipeActivity::class.java)
             startActivity(addRecipeIntent)
         }
+
+        logoutTextView = findViewById(R.id.logoutTextView) as TextView
+        logoutTextView.setOnClickListener {
+            val mainActivityIntent = Intent(this, MainActivity::class.java)
+            startActivity(mainActivityIntent)
+        }
+
     }
 }
