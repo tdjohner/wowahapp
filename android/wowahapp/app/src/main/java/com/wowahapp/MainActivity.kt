@@ -43,10 +43,9 @@ class MainActivity : AppCompatActivity() {
         }
         forgotPass = findViewById<TextView>(R.id.forgotPassTextView) as TextView
         forgotPass.setOnClickListener{
-            val registerUserActivityIntent = Intent(this, ForgotPass::class.java)
-            startActivity(registerUserActivityIntent)
+            val forgotPassActivityIntent = Intent(this, ForgotPass::class.java)
+            startActivity(forgotPassActivityIntent)
         }
-
 
         scrollingBackground()
     }

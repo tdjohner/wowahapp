@@ -24,7 +24,7 @@ class AddRecipeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_add_recipe)
 
         serverSelect = findViewById<Spinner>(R.id.serverSelectSpinner) as Spinner
-        val exampleServers = arrayOf("Please_select_server, Tichondrias, Illidan, Laughing-Skull, Area52")
+        val exampleServers = arrayOf("Please_select_server", "Tichondrias", "Illidan", "Laughing-Skull", "Area52")
         serverSelect.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,exampleServers)
 
         professionSelect = findViewById<Spinner>(R.id.professionSelectSpinner) as Spinner

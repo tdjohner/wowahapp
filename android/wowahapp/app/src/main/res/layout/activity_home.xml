@@ -20,6 +20,7 @@
         android:id="@+id/recyclerView3"
         android:layout_width="335dp"
         android:layout_height="523dp"
+        android:background="@color/green"
         app:layout_constraintBottom_toTopOf="@+id/addRecipeButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

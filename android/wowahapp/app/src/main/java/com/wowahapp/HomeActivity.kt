@@ -21,7 +21,7 @@ class HomeActivity : AppCompatActivity() {
             startActivity(addRecipeIntent)
         }
 
-        logoutTextView = findViewById(R.id.logoutTextView) as TextView
+        logoutTextView = findViewById<TextView>(R.id.logoutTextView)
         logoutTextView.setOnClickListener {
             val mainActivityIntent = Intent(this, MainActivity::class.java)
             startActivity(mainActivityIntent)

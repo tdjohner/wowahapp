@@ -7,7 +7,7 @@
     android:windowSoftInputMode="adjustNothing"
     tools:context=".MainActivity">
 
-    <!-- These two ImageView items are drawn back-to-back horizontally and drug across the screen to
+    <!-- The two Longboy ImageView items are drawn back-to-back horizontally and drug across the screen to
             create the scrolling effect-->
     <ImageView
         android:id="@+id/loginBackgroundOne"
@@ -31,8 +31,8 @@
 
     <EditText
         android:id="@+id/editUsername"
-        android:layout_width="wrap_content"
-        android:layout_height="38dp"
+        android:layout_width="140dp"
+        android:layout_height="40dp"
         android:background="@drawable/text_focus"
         android:drawableStart="@drawable/ic_account"
         android:drawablePadding="12dp"
@@ -52,8 +52,8 @@
 
     <EditText
         android:id="@+id/editPassword"
-        android:layout_width="wrap_content"
-        android:layout_height="38dp"
+        android:layout_width="140dp"
+        android:layout_height="40dp"
         android:layout_marginBottom="52dp"
         android:background="@drawable/text_focus"
         android:drawableStart="@drawable/ic_lock"
@@ -72,27 +72,27 @@
 
     <TextView
         android:id="@+id/registerTextView"
-        android:layout_width="110dp"
-        android:layout_height="32dp"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
         android:clickable="true"
         android:gravity="center"
         android:text="Register Account"
         android:textColor="@color/text_buttons_color"
-        android:textSize="10dp"
+        android:textSize="16dp"
         app:layout_constraintBottom_toTopOf="@+id/forgotPassTextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/forgotPassTextView"
-        android:layout_width="110dp"
-        android:layout_height="32dp"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
         android:layout_marginBottom="228dp"
         android:clickable="true"
         android:gravity="center"
         android:text="Forgot Password?"
         android:textColor="@color/text_buttons_color"
-        android:textSize="10dp"
+        android:textSize="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.501"
