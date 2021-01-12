@@ -12,7 +12,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".TermsOfService"></activity>
         <activity android:name=".ForgotPass" />
         <activity android:name=".RegisterUserActivity" />
         <activity android:name=".AddRecipeActivity" />

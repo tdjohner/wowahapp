@@ -7,4 +7,5 @@
     <color name="black">#000000</color>
     <color name="cyan">#03A9F4</color>
     <color name="green">#14EC14</color>
+    <color name="checkbox">#F6C226</color>
 </resources>

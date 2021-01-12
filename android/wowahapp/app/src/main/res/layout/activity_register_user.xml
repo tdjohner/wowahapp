@@ -136,8 +136,16 @@
         android:layout_height="52dp"
         android:layout_marginBottom="96dp"
         android:lineSpacingExtra="5dp"
+        android:buttonTint="@color/checkbox"
         app:layout_constraintBottom_toBottomOf="@+id/loginBackgroundOne"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-    
+
+    <WebView
+        android:id="@+id/tosWebView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintStart_toStartOf="@+id/loginBackgroundOne"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
