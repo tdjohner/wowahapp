@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ForgotPass">
+
+    <ImageView
+        android:id="@+id/loginBackgroundOne"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/longboy2" />
+
+    <EditText
+        android:id="@+id/editUsername"
+        android:layout_width="140dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="400dp"
+        android:background="@drawable/text_focus"
+        android:drawableStart="@drawable/ic_account"
+        android:drawablePadding="12dp"
+        android:hint="Username"
+        android:inputType="textVisiblePassword"
+        android:paddingStart="8dp"
+        android:paddingEnd="12dp"
+        android:selectAllOnFocus="true"
+        android:textColor="#FFFFFFFF"
+        android:textColorHint="#FFFFFFFF"
+        android:textCursorDrawable="@null"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/backToLoginTextView"
+        android:layout_width="121dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="4dp"
+        android:clickable="true"
+        android:gravity="center"
+        android:text="@string/backToLogin"
+        android:textColor="@color/text_buttons_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.02"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="215dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="96dp"
+        android:gravity="center"
+        android:text="@string/resetPasswordTextView"
+        android:textColor="#EFD556"
+        android:textSize="24dp"
+        app:layout_constraintBottom_toTopOf="@+id/editUsername"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.209" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,15 +1,21 @@
 package com.wowahapp
 
 import android.animation.ValueAnimator
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.animation.LinearInterpolator
+import android.widget.TextView
 
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+
+    lateinit var registerUser : TextView
+    lateinit var forgotPass : TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -17,22 +23,35 @@ class MainActivity : AppCompatActivity() {
         // https://stackoverflow.com/questions/47298935/handling-enter-key-on-edittext-kotlin-android
         editPassword.setOnKeyListener(View.OnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
+
+                // For now we just immediately go to the Home Activity
+                val homeIntent = Intent(this, HomeActivity::class.java)
+                startActivity(homeIntent)
+
                 //hash username into var
                 //hash password into var
-                    sendLoginRequest()
+                sendLoginRequest()
                 return@OnKeyListener true
             }
             false
         })
 
+        registerUser = findViewById<TextView>(R.id.registerTextView) as TextView
+        registerUser.setOnClickListener{
+            val registerUserActivityIntent = Intent(this, RegisterUserActivity::class.java)
+            startActivity(registerUserActivityIntent)
+        }
+        forgotPass = findViewById<TextView>(R.id.forgotPassTextView) as TextView
+        forgotPass.setOnClickListener{
+            val forgotPassActivityIntent = Intent(this, ForgotPass::class.java)
+            startActivity(forgotPassActivityIntent)
+        }
 
-        scrollingBackground();
+        scrollingBackground()
     }
 
     // Validate user against user database
     private fun sendLoginRequest() {
-
-
     }
 
     // login wallpaper moving background from https://stackoverflow.com/questions/36894384/android-move-background-continuously-with-animation

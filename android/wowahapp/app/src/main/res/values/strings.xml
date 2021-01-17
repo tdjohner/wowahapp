@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">wowahapp</string>
+    <string name="add_recipe">+ Add Recipe</string>
+    <string name="confirm">Confirm</string>
+    <string name="backToLogin"><![CDATA[< Back to Login]]></string>
+    <string name="logout"><![CDATA[< Logout]]></string>
+    <string name="registerUser">Register User</string>
+    <string name="resetPasswordTextView">Reset Password</string>
+    <string name="termsString">By creating a user account you accept the Terms of Service</string>
 </resources>
