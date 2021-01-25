@@ -37,7 +37,7 @@ func handleRequest() {
 	router.HandleFunc("/", landingPage)
 	router.HandleFunc("/rp/", getRecipe)
 	router.HandleFunc("/recipe", createRecipe).Methods("POST")
-	log.Fatal(http.ListenAndServe(":666", router))
+	log.Fatal(http.ListenAndServe(":49155", router))
 }
 
 func landingPage(res http.ResponseWriter, req *http.Request) {
@@ -47,7 +47,7 @@ func landingPage(res http.ResponseWriter, req *http.Request) {
 
 func getRecipe(res http.ResponseWriter, req *http.Request) {
 	db, err := sql.Open("mysql", "")
-
+	db.Exec("USE test_local_wowahapp;")
 	if err != nil {
 		fmt.Println("Connection to database failed~~~" + err.Error())
 	} else {
@@ -56,9 +56,9 @@ func getRecipe(res http.ResponseWriter, req *http.Request) {
 
 	defer db.Close()
 
-	result, err := db.Query("SELECT * FROM recipe")
+	result, err := db.Query("SELECT * FROM recipe;")
 	if err != nil {
-		fmt.Println("Error writing to database!~~")
+		fmt.Println("Error writing to database!~~ "+err.Error())
 	} else {
 		defer result.Close()
 
