@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
@@ -24,6 +25,14 @@ func main() {
 type Tester struct {
 	ID  int    `json:"id"`
 	Col string `json:"data"`
+}
+
+type WebConfig struct {
+	User   string
+	Pw     string
+	Ip     string
+	Port   string
+	Schema string
 }
 
 var jsonObject struct {
@@ -46,6 +55,11 @@ func landingPage(res http.ResponseWriter, req *http.Request) {
 }
 
 func getRecipe(res http.ResponseWriter, req *http.Request) {
+
+	connectionString := getConnectionString()
+
+	fmt.Println(connectionString)
+
 	db, err := sql.Open("mysql", "")
 	db.Exec("USE test_local_wowahapp;")
 	if err != nil {
@@ -58,7 +72,7 @@ func getRecipe(res http.ResponseWriter, req *http.Request) {
 
 	result, err := db.Query("SELECT * FROM recipe;")
 	if err != nil {
-		fmt.Println("Error writing to database!~~ "+err.Error())
+		fmt.Println("Error writing to database!~~ " + err.Error())
 	} else {
 		defer result.Close()
 
@@ -80,4 +94,19 @@ func createRecipe(res http.ResponseWriter, req *http.Request) {
 	// infers body to byte[] stream
 	body, _ := ioutil.ReadAll(req.Body)
 	fmt.Fprintf(res, "%+v", string(body))
+}
+
+func getConnectionString() string {
+	// reading in from web.json from https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
+	baseString := "%s:%s@tcp(%s:%s)/%s"
+
+	webFile, _ := os.Open("web.json")
+	defer webFile.Close()
+	decoder := json.NewDecoder(webFile)
+	webconfig := WebConfig{}
+	err := decoder.Decode(&webconfig)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return fmt.Sprintf(baseString, webconfig.User, webconfig.Pw, webconfig.Ip, webconfig.Port, webconfig.Schema)
 }
