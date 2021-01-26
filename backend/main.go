@@ -58,9 +58,7 @@ func getRecipe(res http.ResponseWriter, req *http.Request) {
 
 	connectionString := getConnectionString()
 
-	fmt.Println(connectionString)
-
-	db, err := sql.Open("mysql", "")
+	db, err := sql.Open("mysql", connectionString)
 	db.Exec("USE test_local_wowahapp;")
 	if err != nil {
 		fmt.Println("Connection to database failed~~~" + err.Error())
