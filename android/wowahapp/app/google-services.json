@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "639253528420",
+    "project_id": "active-guild-286620",
+    "storage_bucket": "active-guild-286620.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:639253528420:android:ce4de29318a5cd725fc471",
+        "android_client_info": {
+          "package_name": "com.wowahapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "639253528420-js33o6tmcaonlnah694a2scq5o67bquv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBggKsP90UkIrd4z4VdcnToOmpymLrKiFc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "639253528420-js33o6tmcaonlnah694a2scq5o67bquv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
