@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,6 +34,31 @@ type AHItem struct {
 		TimeLeft  string `json:"time_left"`
 	}
 }
+type Items struct {
+	ID      int    `json:"id"`
+	Name    string `json:"name"`
+	Quality struct {
+		Type string `json:"type"`
+		Name string `json:"name"`
+	}
+	Level      int `json:"level"`
+	Item_Class struct {
+		Name string `json:"name"`
+		Id   int    `json:"id"`
+	}
+	Item_subclass struct {
+		Name string `json:"name"`
+		Id   int    `json:"id"`
+	}
+	Purchase_Price int  `json:"purchase_price"`
+	Sell_Price     int  `json:"sell_price"`
+	Is_Equippable  bool `json:"is_equippable"`
+	Is_Stackable   bool `json:"is_stackable"`
+	Inventory_Type struct {
+		Type string `json:"type"`
+		Name string `json:"name"`
+	}
+}
 
 func main() {
 	url := "https://us.api.blizzard.com/data/wow/connected-realm/76/auctions?namespace=dynamic-us&locale=en_US&access_token=" + getAccessToken()
@@ -47,7 +74,8 @@ func main() {
 	for k := range auctions.Auctions {
 		fmt.Println("AuctionId: ", auctions.Auctions[k].AuctionID)
 	}
-
+	//var Item = PullItem(19019)
+	//fmt.Println(Item.Item_subclass.Name)
 }
 
 func getAccessToken() string {
@@ -87,4 +115,20 @@ func getBlizzClient() string {
 	str := string(json)
 	val := gjson.Get(str, "blizzClient.blizzClientId")
 	return string(val.String())
+}
+
+func PullItem(id int) Items {
+	var Item Items
+
+	url := "https://us.api.blizzard.com/data/wow/item/" + strconv.Itoa(id) + "?namespace=static-us&locale=en_US&access_token=" + getAccessToken()
+
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, _ := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(body, &Item)
+
+	return Item
+
 }
