@@ -32,11 +32,13 @@ type Tester struct {
 }
 
 type WebConfig struct {
-	User   string
-	Pw     string
-	Ip     string
-	Port   string
-	Schema string
+	ConnectionString struct {
+		User   string `json:"user"`
+		Pw     string `json:"pw"`
+		Ip     string `json:"ip"`
+		Port   string `json:"port"`
+		Schema string `json:"schema"`
+	}
 }
 
 var jsonObject struct {
@@ -61,7 +63,7 @@ func landingPage(res http.ResponseWriter, req *http.Request) {
 func getRecipe(res http.ResponseWriter, req *http.Request) {
 
 	connectionString := getConnectionString()
-
+	fmt.Println(connectionString)
 	db, err := sql.Open("mysql", connectionString)
 	db.Exec("USE test_local_wowahapp;")
 	if err != nil {
@@ -117,5 +119,5 @@ func getConnectionString() string {
 	if err != nil {
 		fmt.Println(err)
 	}
-	return fmt.Sprintf(baseString, webconfig.User, webconfig.Pw, webconfig.Ip, webconfig.Port, webconfig.Schema)
+	return fmt.Sprintf(baseString, webconfig.ConnectionString.User, webconfig.ConnectionString.Pw, webconfig.ConnectionString.Ip, webconfig.ConnectionString.Port, webconfig.ConnectionString.Schema)
 }
