@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+
 	"github.com/tidwall/gjson"
 )
 
@@ -18,7 +19,7 @@ type OauthResponse struct {
 	Access_token string
 }
 
-type AHItem struct {
+type AuctionLedger struct {
 	Auctions []struct {
 		AuctionID int `json:"id"`
 		Item      struct {
@@ -34,6 +35,7 @@ type AHItem struct {
 		TimeLeft  string `json:"time_left"`
 	}
 }
+
 type Items struct {
 	ID      int    `json:"id"`
 	Name    string `json:"name"`
@@ -61,22 +63,27 @@ type Items struct {
 }
 
 func main() {
-	url := "https://us.api.blizzard.com/data/wow/connected-realm/76/auctions?namespace=dynamic-us&locale=en_US&access_token=" + getAccessToken()
-	fmt.Println(url)
-	response, err := http.Get(url)
+	ledger := getAuctions(76, getAccessToken())
+	for _, a := range ledger.Auctions {
+		fmt.Println(a.AuctionID)
+	}
+
+}
+
+func getAuctions(realmID int, accessToken string) AuctionLedger {
+	url := "https://us.api.blizzard.com/data/wow/connected-realm/%d/auctions?namespace=dynamic-us&locale=en_US&access_token="
+	url = fmt.Sprintf( url + accessToken, realmID)
+		response, err := http.Get(url)
 	if nil != err {
 		fmt.Println(err)
 	}
 	defer response.Body.Close()
-	auctions := AHItem{}
+	ledger := AuctionLedger{}
 	body, _ := ioutil.ReadAll(response.Body)
-	json.Unmarshal(body, &auctions)
-	for k := range auctions.Auctions {
-		fmt.Println("AuctionId: ", auctions.Auctions[k].AuctionID)
-	}
-	//var Item = PullItem(19019)
-	//fmt.Println(Item.Item_subclass.Name)
+	json.Unmarshal(body, &ledger)
+	return ledger
 }
+
 
 func getAccessToken() string {
 
@@ -104,14 +111,14 @@ func getAccessToken() string {
 }
 
 func getBlizzSecret() string {
-	json, _ := ioutil.ReadFile("web.json")
+	json, _ := ioutil.ReadFile("../web.json")
 	str := string(json)
 	val := gjson.Get(str, "blizzClient.blizzClientSecret")
 	return string(val.String())
 }
 
 func getBlizzClient() string {
-	json, _ := ioutil.ReadFile("web.json")
+	json, _ := ioutil.ReadFile("../web.json")
 	str := string(json)
 	val := gjson.Get(str, "blizzClient.blizzClientId")
 	return string(val.String())
