@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -11,32 +12,129 @@ import (
 	"strings"
 	"time"
 
-
+	dbh "../databaseHelpers"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/tidwall/gjson"
 )
+
+var auctionTableBaseQuery = "CREATE TABLE %s (" +
+"id INT unsigned auto_increment primary key, " +
+"auctionID INT, " +
+"itemID INT, " +
+"quantity INT, " +
+"unitPrice BIGINT, " +
+"bid BIGINT, " +
+"buyout BIGINT, " +
+"timeLeft VARCHAR(16))"
+
+func main() {
+
+	supportedRealms := getSupportedRealms()
+	connectionString := dbh.GetConnectionString()
+	accessToken := getAccessToken()
+	db, err := sql.Open("mysql", connectionString)
+	if err != nil {
+		fmt.Println("Connection to database failed: " + err.Error())
+	}
+	defer db.Close()
+
+	for _, r := range supportedRealms.SupportedRealms {
+
+
+		//first we create a fresh table for the auctions
+		tableName := fmt.Sprintf("aucts_Realm%d_date%s", r, time.Now().Local().Format("2006_01_02_15_04_05"))
+		newTableQuery := fmt.Sprintf(auctionTableBaseQuery, tableName)
+		conn, err := db.Query(newTableQuery)
+		if nil != err {
+			fmt.Println("Error creating a new Auction Table: ", err)
+		}
+		conn.Close()
+
+		//now we put all the realms auctions in the new table
+		auctions := PullAuctions(r, getAccessToken())
+		for _, a := range auctions.Auctions {
+			PushAuction(a, tableName, db)
+		}
+
+
+		// get all the ItemIDs from the auctions we just inserted
+		var incomingID int
+		var incomingIDs []int
+		conn, err = db.Query(fmt.Sprintf("SELECT DISTINCT itemID from %s order by itemID", tableName))
+		if nil != err {
+			fmt.Println("Error populating incomingIDs: ", err)
+		}
+		for conn.Next() {
+			conn.Scan(&incomingID)
+			incomingIDs = append(incomingIDs, incomingID)
+		}
+		conn.Close()
+
+		// get all existing ItemIDs from the Items table
+		var existingID int
+		var existingIDs []int
+		conn, err = db.Query(fmt.Sprintf("SELECT DISTINCT id from tblitem order by id"))
+		if nil != err {
+			fmt.Println("Error querying existingIDs: ", err)
+		}
+		for conn.Next() {
+			conn.Scan(&existingID)
+			existingIDs = append(existingIDs, existingID)
+		}
+		conn.Close()
+
+		// Iterate over all Items and add any we don't have
+		var matchFlag bool
+		for _, k := range incomingIDs {
+			matchFlag = false
+			for _, j := range existingIDs {
+				if k == j {
+					matchFlag = true
+					break // match found, not to be added
+				}
+			}
+			if !matchFlag {
+				// no match in database, pull Item from blizzard API and store it
+				fmt.Println("Adding new item: ", k)
+				newItem, cheapErr := PullItem(k, accessToken)
+				if 404 == cheapErr {
+					fmt.Println("Failed to retrieve item from database: ", k)
+					continue
+				}
+				PushItem(newItem, db)
+				time.Sleep(500 * time.Millisecond)
+			}
+		}
+	}
+
+
+}
+
+type Realms struct {
+	SupportedRealms []int
+}
 
 type OauthResponse struct {
 	Access_token string
 }
 
 type AuctionLedger struct {
-	Auctions []struct {
-		AuctionID int `json:"id"`
-		Item      struct {
-			ItemID     int `json:"id"`
-			BonusLists []int
-			Modifiers  []struct {
-				Type  int `json:"type"`
-				Value int `json:"value"`
-			}
-		}
-		Quantity  int    `json:"quantity"`
-		UnitPrice int    `json:"unit_price"`
-		TimeLeft  string `json:"time_left"`
-	}
+	Auctions []Auction
 }
 
-type Items struct {
+type Auction struct{
+	AuctionID int `json:"id"`
+	Item      struct {
+		ItemID     int `json:"id"`
+	}
+	Quantity  int    `json:"quantity"`
+	UnitPrice int    `json:"unit_price"`
+	Bid int 	     `json:"bid"`
+	Buyout int 	 	 `json:"buyout"`
+	TimeLeft  string `json:"time_left"`
+}
+
+type Item struct {
 	ID      int    `json:"id"`
 	Name    string `json:"name"`
 	Quality struct {
@@ -48,29 +146,28 @@ type Items struct {
 		Name string `json:"name"`
 		Id   int    `json:"id"`
 	}
-	Item_subclass struct {
+	Item_Subclass struct {
 		Name string `json:"name"`
 		Id   int    `json:"id"`
 	}
-	Purchase_Price int  `json:"purchase_price"`
-	Sell_Price     int  `json:"sell_price"`
-	Is_Equippable  bool `json:"is_equippable"`
-	Is_Stackable   bool `json:"is_stackable"`
+	PurchasePrice int  `json:"purchase_price"`
+	SellPrice     int  `json:"sell_price"`
+	IsEquippable  bool `json:"is_equippable"`
+	IsStackable   bool `json:"is_stackable"`
 	Inventory_Type struct {
 		Type string `json:"type"`
 		Name string `json:"name"`
 	}
 }
 
-func main() {
-	ledger := getAuctions(76, getAccessToken())
-	for _, a := range ledger.Auctions {
-		fmt.Println(a.AuctionID)
-	}
-
+func getSupportedRealms() Realms {
+	supportedRealms := Realms{}
+	body, _ := ioutil.ReadFile("conf.json")
+	json.Unmarshal(body, &supportedRealms)
+	return supportedRealms
 }
 
-func getAuctions(realmID int, accessToken string) AuctionLedger {
+func PullAuctions(realmID int, accessToken string) AuctionLedger {
 	url := "https://us.api.blizzard.com/data/wow/connected-realm/%d/auctions?namespace=dynamic-us&locale=en_US&access_token="
 	url = fmt.Sprintf( url + accessToken, realmID)
 		response, err := http.Get(url)
@@ -124,18 +221,82 @@ func getBlizzClient() string {
 	return string(val.String())
 }
 
-func PullItem(id int) Items {
-	var Item Items
-
-	url := "https://us.api.blizzard.com/data/wow/item/" + strconv.Itoa(id) + "?namespace=static-us&locale=en_US&access_token=" + getAccessToken()
+func PullItem(id int, accessToken string) (Item, int) {
+	var Item Item
+	var error int
+	url := "https://us.api.blizzard.com/data/wow/item/" + strconv.Itoa(id) + "?namespace=static-us&locale=en_US&access_token=" + accessToken
 
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
+	} else if 404 == resp.StatusCode {
+		error = 404
 	}
 	body, _ := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(body, &Item)
 
-	return Item
-
+	return Item, error
 }
+
+//place Item row in our database
+func PushItem(item Item, db *sql.DB) {
+
+	query := "INSERT INTO tblitem (id, name, quality, class, subclass, inventoryType, level, purchasePrice, sellPrice, isEquipable, isStackable) " +
+						"VALUES (%d, \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", %d, %d, %d, %t, %t)"
+	query = fmt.Sprintf(query,
+						item.ID,   // hideous but instances of quotes crash our queries
+						strings.Replace(strings.Replace(item.Name, "'", "", -1), "\"", "", -1 ),
+						item.Quality.Name,
+						item.Item_Class.Name,
+						item.Item_Subclass.Name,
+						item.Inventory_Type.Name,
+						item.Level,
+						item.PurchasePrice,
+						item.SellPrice,
+						item.IsEquippable,
+						item.IsStackable)
+	q, err := db.Query(query)
+	defer q.Close()
+	if nil != err {
+		fmt.Println("Error Inserting Item: ", err.Error())
+		fmt.Println(query)
+	}
+}
+
+func PushAuction(auction Auction, tableName string,  db *sql.DB) {
+
+	query := fmt.Sprintf("INSERT INTO %s (unitPrice, bid, buyout, auctionID, itemID, quantity, timeLeft) " +
+		"VALUES (%d, %d, %d, %d, %d, %d, \"%s\");",
+		tableName,
+		auction.UnitPrice,
+		auction.Bid,
+		auction.Buyout,
+		auction.AuctionID,
+		auction.Item.ItemID,
+		auction.Quantity,
+		auction.TimeLeft)
+
+	rows, err := db.Query(query)
+	if nil != err {
+		fmt.Println("Error inserting Auction row: ", err)
+	}
+	rows.Close()
+}
+
+func checkItemExists(id int) bool {
+	connectionString := dbh.GetConnectionString()
+	db, err := sql.Open("mysql", connectionString)
+	if err != nil {
+		fmt.Println("Connection to database failed: " + err.Error())
+	}
+	defer db.Close()
+
+	rows, err := db.Query("SELECT * FROM tblitem WHERE id = " + string(id))
+	defer rows.Close()
+	if rows.Next() {
+		return true
+	} else {
+		return false
+	}
+}
+
