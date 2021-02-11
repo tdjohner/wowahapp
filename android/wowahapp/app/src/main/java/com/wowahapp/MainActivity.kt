@@ -48,6 +48,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         scrollingBackground()
+        //sendJson sends a json object to our backend
+        //sendJson()
     }
 
     // Validate user against user database

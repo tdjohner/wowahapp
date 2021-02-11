@@ -15,7 +15,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
+	"../databaseHelpers"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
@@ -29,14 +29,6 @@ func main() {
 type Tester struct {
 	ID  int    `json:"id"`
 	Col string `json:"data"`
-}
-
-type WebConfig struct {
-	User   string
-	Pw     string
-	Ip     string
-	Port   string
-	Schema string
 }
 
 var jsonObject struct {
@@ -60,14 +52,11 @@ func landingPage(res http.ResponseWriter, req *http.Request) {
 
 func getRecipe(res http.ResponseWriter, req *http.Request) {
 
-	connectionString := getConnectionString()
-
+	connectionString := databaseHelpers.GetConnectionString()
 	db, err := sql.Open("mysql", connectionString)
-	db.Exec("USE test_local_wowahapp;")
 	if err != nil {
 		fmt.Println("Connection to database failed: " + err.Error())
 	}
-
 	defer db.Close()
 
 	result, err := db.Query("SELECT * FROM recipe;")
@@ -105,17 +94,4 @@ func createUser(res http.ResponseWriter, req *http.Request) {
 	fmt.Printf("user: %s, email: %s", newUser.Name, newUser.Address)
 }
 
-func getConnectionString() string {
-	// reading in from web.json from https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
-	baseString := "%s:%s@tcp(%s:%s)/%s"
 
-	webFile, _ := os.Open("web.json")
-	defer webFile.Close()
-	decoder := json.NewDecoder(webFile)
-	webconfig := WebConfig{}
-	err := decoder.Decode(&webconfig)
-	if err != nil {
-		fmt.Println(err)
-	}
-	return fmt.Sprintf(baseString, webconfig.User, webconfig.Pw, webconfig.Ip, webconfig.Port, webconfig.Schema)
-}
