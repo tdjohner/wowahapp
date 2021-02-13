@@ -18,17 +18,17 @@ type WebConfig struct {
 }
 
 type WoWItem struct {
-	Id int
-	Name string
-	Quality string
-	Class string
-	Subclass string
-	InventoryType string
-	Level int
-	PurchasePrice int
-	SellPrice int
-	IsEquipable bool
-	IsStackable bool
+	Id int `db:id`
+	Name string `db:name`
+	Quality string `db:quality`
+	Class string `db:class`
+	Subclass string `db:subclass`
+	InventoryType string `db:inventorytype`
+	Level int `db:level`
+	PurchasePrice int `db:purchaseprice`
+	SellPrice int `db:sellprice`
+	IsEquipable bool `db:isequipable`
+	IsStackable bool `db:isstackable`
 }
 
 func GetConnectionString() string {
@@ -47,29 +47,28 @@ func GetConnectionString() string {
 }
 
 func GetItemByName(name string, db *sql.DB) WoWItem {
-	item := WoWItem{}
-	q := fmt.Sprintf("SELECT * FROM tblitem WHERE NAME = \"%s\";", name)
-	fmt.Println(q)
-	/*
-	rows, err := db.Query("SELECT * FROM tblitem WHERE NAME = " + name + ";")
+	var item WoWItem
+	q := fmt.Sprintf("SELECT * FROM tblitem WHERE name = \"%s\";", name)
+	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error getting Item from database: ", err.Error())
 	}
 	defer rows.Close()
 	if rows.Next() {
-		rows.Scan(item.id,
-			item.name,
-			item.quality,
-			item.class,
-			item.subclass,
-			item.inventoryType,
-			item.subclass,
-			item.level,
-			item.purchasePrice,
-			item.sellPrice)
+		err = rows.Scan(&item.Id,
+			&item.Name,
+			&item.Quality,
+			&item.Class,
+			&item.Subclass,
+			&item.InventoryType,
+			&item.Level,
+			&item.PurchasePrice,
+			&item.SellPrice,
+			&item.IsEquipable,
+			&item.IsStackable)
+		if nil != err {
+			fmt.Println("Error marshalling DB object: ", err.Error())
+		}
 	}
-
-	 */
-
 	return item
 }
