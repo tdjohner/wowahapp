@@ -15,7 +15,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"../databaseHelpers"
+	dbh "../databaseHelpers"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
@@ -41,6 +41,7 @@ func handleRequest() {
 
 	router.HandleFunc("/", landingPage)
 	router.HandleFunc("/rp/", getRecipe)
+	router.HandleFunc("/getitem/{itemName}/", getItem)
 	router.HandleFunc("/createuser/", createUser).Methods("POST")
 	log.Fatal(http.ListenAndServe(":49155", router))
 }
@@ -50,9 +51,21 @@ func landingPage(res http.ResponseWriter, req *http.Request) {
 	fmt.Println("Endpoint: Landing Page")
 }
 
+func getItem(res http.ResponseWriter, req *http.Request) {
+
+	vars := mux.Vars(req)
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
+	defer db.Close()
+	item := dbh.GetItemByName(vars["itemName"], db)
+	json.NewEncoder(res).Encode(item)
+}
+
 func getRecipe(res http.ResponseWriter, req *http.Request) {
 
-	connectionString := databaseHelpers.GetConnectionString()
+	connectionString := dbh.GetConnectionString()
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		fmt.Println("Connection to database failed: " + err.Error())
