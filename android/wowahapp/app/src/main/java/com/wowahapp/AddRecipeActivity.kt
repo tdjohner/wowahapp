@@ -4,11 +4,9 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.Spinner
+import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
+import com.android.volley.toolbox.Volley
 import kotlinx.android.synthetic.*
 
 class AddRecipeActivity : AppCompatActivity() {
@@ -17,6 +15,7 @@ class AddRecipeActivity : AppCompatActivity() {
     lateinit var professionSelect : Spinner
     lateinit var recipeListView : RecyclerView
     lateinit var confirmButton : Button
+    lateinit var dummyText : TextView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,7 +23,8 @@ class AddRecipeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_add_recipe)
 
         serverSelect = findViewById<Spinner>(R.id.serverSelectSpinner) as Spinner
-        val exampleServers = arrayOf("Please_select_server", "Tichondrias", "Illidan", "Laughing-Skull", "Area52")
+
+        val exampleServers = arrayOf("Please_select_item", "Broken Fishing Pole", "Keen Incisor", "Blackthorn Warboots", "Potion of Deathly Fixation")
         serverSelect.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,exampleServers)
 
         professionSelect = findViewById<Spinner>(R.id.professionSelectSpinner) as Spinner
@@ -33,8 +33,17 @@ class AddRecipeActivity : AppCompatActivity() {
 
         confirmButton = findViewById<Button>(R.id.confirmButton) as Button
         confirmButton.setOnClickListener {
+
+            dummyText = findViewById<TextView>(R.id.dummyTextView) as TextView
+            dummyText.text = serverSelect.getItemAtPosition(serverSelect.selectedItemPosition).toString()
+
+            //Volley.newRequestQueue(this)
+
+            /* RE-IMPLEMENT AFTER DEMO!
             val homeActivityIntent = Intent(this, HomeActivity::class.java)
             startActivity(homeActivityIntent)
+
+            */
         }
     }
 }
