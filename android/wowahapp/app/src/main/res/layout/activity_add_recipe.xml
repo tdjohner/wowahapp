@@ -26,6 +26,7 @@
 
     <!-- The recycler View for Recipe Selection -->
     <androidx.recyclerview.widget.RecyclerView
+        android:background="@color/green"
         android:id="@+id/recyclerView"
         android:layout_width="320dp"
         android:layout_height="416dp"
