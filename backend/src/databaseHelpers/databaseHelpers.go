@@ -72,3 +72,35 @@ func GetItemByName(name string, db *sql.DB) WoWItem {
 	}
 	return item
 }
+
+func GetAllProfessions(db *sql.DB) []string {
+	professions := []string{}
+	q := "SELECT name FROM luprofessions"
+	rows, err := db.Query(q)
+	if nil != err {
+		fmt.Println("Error retrieving professions from database: ", err.Error())
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var p string
+		err = rows.Scan(&p)
+		professions = append(professions, p)
+	}
+	return professions
+}
+
+func GetAllExpacs(db *sql.DB) []string {
+	expacs := []string{}
+	q := "SELECT name FROM luexpansions"
+	rows, err := db.Query(q)
+	if nil != err {
+		fmt.Println("Error retrieving professions from database: ", err.Error())
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var p string
+		err = rows.Scan(&p)
+		expacs = append(expacs, p)
+	}
+	return expacs
+}

@@ -6,53 +6,64 @@
     android:layout_height="match_parent"
     tools:context=".AddRecipeActivity">
 
-    <Spinner
-        android:id="@+id/serverSelectSpinner"
-        android:layout_width="320dp"
-        android:layout_height="46dp"
-        app:layout_constraintBottom_toTopOf="@+id/professionSelectSpinner"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <!-- The recycler View for Recipe Selection -->
 
     <Spinner
         android:id="@+id/professionSelectSpinner"
         android:layout_width="320dp"
         android:layout_height="46dp"
-        android:layout_marginBottom="64dp"
-        app:layout_constraintBottom_toTopOf="@+id/recyclerView"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/textviewhighlight"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintHorizontal_bias="0.494"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/expansionSelectSpinner" />
 
-    <!-- The recycler View for Recipe Selection -->
+    <Spinner
+        android:id="@+id/expansionSelectSpinner"
+        android:layout_width="320dp"
+        android:layout_height="46dp"
+        android:layout_marginTop="40dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.494"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.recyclerview.widget.RecyclerView
-        android:background="@color/green"
         android:id="@+id/recyclerView"
         android:layout_width="320dp"
         android:layout_height="416dp"
-        android:layout_marginBottom="52dp"
+        android:layout_marginBottom="80dp"
+        android:background="@color/green"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintHorizontal_bias="0.494"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/searchTextView"
+        app:layout_constraintVertical_bias="0.56" />
 
     <Button
         android:id="@+id/confirmButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="44dp"
         android:text="@string/confirm"
-        app:layout_constraintBottom_toTopOf="@+id/recyclerView"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/professionSelectSpinner"
-        app:layout_constraintVertical_bias="0.437" />
+        app:layout_constraintHorizontal_bias="0.857"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recyclerView" />
 
     <TextView
-        android:id="@+id/dummyTextView"
-        android:layout_width="194dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="44dp"
-        android:layout_marginTop="8dp"
-        android:text="TextView"
+        android:id="@+id/searchTextView"
+        android:layout_width="320dp"
+        android:layout_height="46dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/textviewhighlight"
+        android:hint="Search"
+        android:paddingLeft="10dp"
+        android:gravity="center_vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.494"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/professionSelectSpinner" />
 
