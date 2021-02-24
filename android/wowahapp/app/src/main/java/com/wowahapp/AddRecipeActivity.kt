@@ -1,49 +1,68 @@
 package com.wowahapp
 
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
 import android.widget.*
-import androidx.recyclerview.widget.RecyclerView
-import com.android.volley.toolbox.Volley
-import kotlinx.android.synthetic.*
+import com.android.volley.NetworkResponse
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.Response
+import com.android.volley.toolbox.*
+import org.json.JSONArray
+import org.json.JSONException
+
 
 class AddRecipeActivity : AppCompatActivity() {
 
-    lateinit var serverSelect : Spinner
-    lateinit var professionSelect : Spinner
-    lateinit var recipeListView : RecyclerView
-    lateinit var confirmButton : Button
-    lateinit var dummyText : TextView
+    lateinit var searchTextView : TextView
+    lateinit var professionSpinner : Spinner
+    lateinit var expansionSpinner : Spinner
+    private var requestQueue : RequestQueue? = null
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_recipe)
 
-        serverSelect = findViewById<Spinner>(R.id.serverSelectSpinner) as Spinner
 
-        val exampleServers = arrayOf("Please_select_item", "Broken Fishing Pole", "Keen Incisor", "Blackthorn Warboots", "Potion of Deathly Fixation")
-        serverSelect.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,exampleServers)
+        searchTextView = findViewById<TextView>(R.id.searchTextView) as TextView
+        professionSpinner = findViewById<Spinner>(R.id.professionSelectSpinner) as Spinner
+        expansionSpinner = findViewById<Spinner>(R.id.expansionSelectSpinner) as Spinner
+        getAllProfessions(professionSpinner)
+        getAllExpansions(expansionSpinner)
 
-        professionSelect = findViewById<Spinner>(R.id.professionSelectSpinner) as Spinner
+    }
 
-        recipeListView = findViewById<RecyclerView>(R.id.recyclerView) as RecyclerView
+    fun getAllProfessions(professionSpinner : Spinner) {
 
-        confirmButton = findViewById<Button>(R.id.confirmButton) as Button
-        confirmButton.setOnClickListener {
+        val url = "http://192.168.0.24:49155/allprofessions"
+        val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response ->try {
+            var profArray : ArrayList<String> = ArrayList<String>()
+            for (i in 0 until response.length()) {
+                profArray.add(response.getString(i))
+            }
+            professionSpinner.adapter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, profArray)
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
+            }, Response.ErrorListener { error -> error.printStackTrace() })
+            VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
+    }
 
-            dummyText = findViewById<TextView>(R.id.dummyTextView) as TextView
-            dummyText.text = serverSelect.getItemAtPosition(serverSelect.selectedItemPosition).toString()
-
-            //Volley.newRequestQueue(this)
-
-            /* RE-IMPLEMENT AFTER DEMO!
-            val homeActivityIntent = Intent(this, HomeActivity::class.java)
-            startActivity(homeActivityIntent)
-
-            */
+    fun getAllExpansions(expansionSpinner : Spinner) {
+        val url = "http://192.168.0.24:49155/allexpansions"
+        val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response ->try {
+            var expArray : ArrayList<String> = ArrayList<String>()
+            for (i in 0 until response.length()) {
+                expArray.add(response.getString(i))
+            }
+            expansionSpinner.adapter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, expArray)
+        } catch (e: JSONException) {
+            e.printStackTrace()
         }
+        }, Response.ErrorListener { error -> error.printStackTrace() })
+        VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 }
+

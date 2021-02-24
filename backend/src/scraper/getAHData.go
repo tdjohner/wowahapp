@@ -40,7 +40,6 @@ func main() {
 
 	for _, r := range supportedRealms.SupportedRealms {
 
-
 		//first we create a fresh table for the auctions
 		tableName := fmt.Sprintf("aucts_Realm%d_date%s", r, time.Now().Local().Format("2006_01_02_15_04_05"))
 		newTableQuery := fmt.Sprintf(auctionTableBaseQuery, tableName)
