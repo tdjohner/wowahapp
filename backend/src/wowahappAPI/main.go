@@ -15,14 +15,13 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"../databaseHelpers"
+	dbh "../databaseHelpers"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
 
 func main() {
-
 	handleRequest()
 }
 
@@ -40,7 +39,10 @@ func handleRequest() {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/", landingPage)
-	router.HandleFunc("/rp/", getRecipe)
+	//router.HandleFunc("/rp/", getRecipe)
+	router.HandleFunc("/allprofessions/", getProfessions)
+	router.HandleFunc("/allexpansions/", getExpansions)
+	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
 	router.HandleFunc("/createuser/", createUser).Methods("POST")
 	log.Fatal(http.ListenAndServe(":49155", router))
 }
@@ -50,9 +52,21 @@ func landingPage(res http.ResponseWriter, req *http.Request) {
 	fmt.Println("Endpoint: Landing Page")
 }
 
+func getItem(res http.ResponseWriter, req *http.Request) {
+
+	vars := mux.Vars(req)
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
+	defer db.Close()
+	item := dbh.GetItemByName(vars["itemName"], db)
+	json.NewEncoder(res).Encode(item)
+}
+/*
 func getRecipe(res http.ResponseWriter, req *http.Request) {
 
-	connectionString := databaseHelpers.GetConnectionString()
+	connectionString := dbh.GetConnectionString()
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		fmt.Println("Connection to database failed: " + err.Error())
@@ -77,6 +91,8 @@ func getRecipe(res http.ResponseWriter, req *http.Request) {
 
 }
 
+ */
+
 // Create database record example
 func createUser(res http.ResponseWriter, req *http.Request) {
 
@@ -94,4 +110,25 @@ func createUser(res http.ResponseWriter, req *http.Request) {
 	fmt.Printf("user: %s, email: %s", newUser.Name, newUser.Address)
 }
 
+func getProfessions(res http.ResponseWriter, req *http.Request) {
+
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
+	defer db.Close()
+	professions := dbh.GetAllProfessions(db)
+	json.NewEncoder(res).Encode(professions)
+}
+
+func getExpansions(res http.ResponseWriter, req *http.Request) {
+
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
+	defer db.Close()
+	expacs := dbh.GetAllExpacs(db)
+	json.NewEncoder(res).Encode(expacs)
+}
 
