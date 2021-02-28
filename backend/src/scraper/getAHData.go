@@ -17,8 +17,11 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-var auctionTableBaseQuery = "CREATE TABLE %s (" +
+var tableName = "tbl_auctions_current"
+
+var newAuctionTableQuery = "CREATE TABLE tbl_auctions_current (" +
 "id INT unsigned auto_increment primary key, " +
+"cnctdRealmID INT, " +
 "auctionID INT, " +
 "itemID INT, " +
 "quantity INT, " +
@@ -38,21 +41,25 @@ func main() {
 	}
 	defer db.Close()
 
-	for _, r := range supportedRealms.SupportedRealms {
+	//First we rename the old table. This is currently our only method of archiving historical price data
+	archiveTableName := fmt.Sprintf("aucts_date%s",time.Now().Local().Format("2006_01_02_15_04_05"))
+	renameQuery := fmt.Sprintf("RENAME TABLE tbl_auctions_current TO %s", archiveTableName)
+	conn, err := db.Query(renameQuery)
+	if nil != err {
+		fmt.Println("Error creating Archive Auction Table: ", err)
+	}
+	conn.Close()
+	conn, err = db.Query(newAuctionTableQuery)
+	if nil != err {
+		fmt.Println("Error creating a new Auction Table: ", err)
+	}
+	conn.Close()
 
-		//first we create a fresh table for the auctions
-		tableName := fmt.Sprintf("aucts_Realm%d_date%s", r, time.Now().Local().Format("2006_01_02_15_04_05"))
-		newTableQuery := fmt.Sprintf(auctionTableBaseQuery, tableName)
-		conn, err := db.Query(newTableQuery)
-		if nil != err {
-			fmt.Println("Error creating a new Auction Table: ", err)
-		}
-		conn.Close()
-
+	for _, realm := range supportedRealms.SupportedRealms {
 		//now we put all the realms auctions in the new table
-		auctions := PullAuctions(r, getAccessToken())
-		for _, a := range auctions.Auctions {
-			PushAuction(a, tableName, db)
+		auctions := PullAuctions(realm, getAccessToken())
+		for _, auction := range auctions.Auctions {
+			PushAuction(auction, tableName, realm, db)
 		}
 
 
@@ -262,10 +269,10 @@ func PushItem(item Item, db *sql.DB) {
 	}
 }
 
-func PushAuction(auction Auction, tableName string,  db *sql.DB) {
+func PushAuction(auction Auction, tableName string, realm int,  db *sql.DB) {
 
-	query := fmt.Sprintf("INSERT INTO %s (unitPrice, bid, buyout, auctionID, itemID, quantity, timeLeft) " +
-		"VALUES (%d, %d, %d, %d, %d, %d, \"%s\");",
+	query := fmt.Sprintf("INSERT INTO %s (unitPrice, bid, buyout, auctionID, itemID, quantity, cnctdRealmID, timeLeft) " +
+		"VALUES (%d, %d, %d, %d, %d, %d, %d, \"%s\");",
 		tableName,
 		auction.UnitPrice,
 		auction.Bid,
@@ -273,6 +280,7 @@ func PushAuction(auction Auction, tableName string,  db *sql.DB) {
 		auction.AuctionID,
 		auction.Item.ItemID,
 		auction.Quantity,
+		realm,
 		auction.TimeLeft)
 
 	rows, err := db.Query(query)

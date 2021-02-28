@@ -19,24 +19,20 @@ class AddRecipeActivity : AppCompatActivity() {
     lateinit var expansionSpinner : Spinner
     private var requestQueue : RequestQueue? = null
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_recipe)
-
 
         searchTextView = findViewById<TextView>(R.id.searchTextView) as TextView
         professionSpinner = findViewById<Spinner>(R.id.professionSelectSpinner) as Spinner
         expansionSpinner = findViewById<Spinner>(R.id.expansionSelectSpinner) as Spinner
         getAllProfessions(professionSpinner)
         getAllExpansions(expansionSpinner)
-
     }
 
     fun getAllProfessions(professionSpinner : Spinner) {
 
-        val url = "http://192.168.0.24:49155/allprofessions"
+        val url = "http://35.193.69.215:49155/allprofessions"
         val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response ->try {
             var profArray : ArrayList<String> = ArrayList<String>()
             for (i in 0 until response.length()) {
@@ -51,7 +47,7 @@ class AddRecipeActivity : AppCompatActivity() {
     }
 
     fun getAllExpansions(expansionSpinner : Spinner) {
-        val url = "http://192.168.0.24:49155/allexpansions"
+        val url = "http://35.193.69.215:49155/allexpansions"
         val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response ->try {
             var expArray : ArrayList<String> = ArrayList<String>()
             for (i in 0 until response.length()) {

@@ -11,6 +11,10 @@ CREATE TABLE luProfessions (
     name varchar(32)
 );
 
+CREATE TABLE luExpansions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name varchar(32)
+);
 
 INSERT INTO luProfessions (name)
 VALUES
@@ -28,3 +32,15 @@ VALUES
 ("Archaeology"),
 ("Cooking"),
 ("Fishing");
+
+INSERT INTO luExpansions (name)
+VALUES
+("Classic"),
+("The Burning Crusade"),
+("Wrath of the Lich King"),
+("Cataclysm"),
+("Mists of Pandaria"),
+("Warlords of Draenor"),
+("Legion"),
+("Battle for Azeroth"),
+("Shadowlands");
