@@ -1,2 +1,3 @@
 **/*.exe
 **/web.json
+**/go.mod
