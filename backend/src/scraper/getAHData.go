@@ -79,7 +79,7 @@ func main() {
 		// get all existing ItemIDs from the Items table
 		var existingID int
 		var existingIDs []int
-		conn, err = db.Query(fmt.Sprintf("SELECT DISTINCT id from tblitem order by id"))
+		conn, err = db.Query(fmt.Sprintf("SELECT DISTINCT id from tbl_item order by id"))
 		if nil != err {
 			fmt.Println("Error querying existingIDs: ", err)
 		}
@@ -247,7 +247,7 @@ func PullItem(id int, accessToken string) (Item, int) {
 //place Item row in our database
 func PushItem(item Item, db *sql.DB) {
 
-	query := "INSERT INTO tblitem (id, name, quality, class, subclass, inventoryType, level, purchasePrice, sellPrice, isEquipable, isStackable) " +
+	query := "INSERT INTO tbl_item (id, name, quality, class, subclass, inventoryType, level, purchasePrice, sellPrice, isEquipable, isStackable) " +
 						"VALUES (%d, \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", %d, %d, %d, %t, %t)"
 	query = fmt.Sprintf(query,
 						item.ID,   // hideous but instances of quotes crash our queries
@@ -298,7 +298,7 @@ func checkItemExists(id int) bool {
 	}
 	defer db.Close()
 
-	rows, err := db.Query("SELECT * FROM tblitem WHERE id = " + string(id))
+	rows, err := db.Query("SELECT * FROM tbl_item WHERE id = " + string(id))
 	defer rows.Close()
 	if rows.Next() {
 		return true

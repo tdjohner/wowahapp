@@ -50,7 +50,7 @@ func GetConnectionString() string {
 //Get item from our database by it's name
 func GetItemByName(name string, db *sql.DB) WoWItem {
 	var item WoWItem
-	q := fmt.Sprintf("SELECT * FROM tblitem WHERE name = \"%s\";", name)
+	q := fmt.Sprintf("SELECT * FROM tbl_item WHERE name = \"%s\";", name)
 	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error getting Item from database: ", err.Error())
@@ -78,7 +78,7 @@ func GetItemByName(name string, db *sql.DB) WoWItem {
 //Get Professions from our database
 func GetAllProfessions(db *sql.DB) []string {
 	professions := []string{}
-	q := "SELECT name FROM luprofessions"
+	q := "SELECT name FROM lu_professions"
 	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error retrieving professions from database: ", err.Error())
@@ -95,7 +95,7 @@ func GetAllProfessions(db *sql.DB) []string {
 //Get Expansions from our database
 func GetAllExpacs(db *sql.DB) []string {
 	expacs := []string{}
-	q := "SELECT name FROM luexpansions"
+	q := "SELECT name FROM lu_expansions"
 	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error retrieving professions from database: ", err.Error())
