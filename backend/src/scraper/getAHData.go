@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	dbh "databaseHelpers"
+	dbh "../databaseHelpers"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/tidwall/gjson"
 )
