@@ -331,7 +331,6 @@ func checkItemExists(id int) bool {
 
 func scrapeRecipes() {
 	connectionString := dbh.GetConnectionString()
-	//"root:bridge4four@/test_local_wowahapp"
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		fmt.Println("Connection to database failed: " + err.Error())
