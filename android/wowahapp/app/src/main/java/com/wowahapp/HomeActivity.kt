@@ -40,16 +40,12 @@ class HomeActivity : AppCompatActivity() {
 
     }
 
-    private fun prepareItems(){
+    private fun prepareItems() {
         var recipe = RecipeModel("Spaghetti", "$40.00","$39.00", "gfjhkfghjjk")
-        //itemsList.add(recipe)
         customAdapter.addItem(recipe)
         recipe = RecipeModel("Noodles", "$500.00","$600.00", "plplpl")
-        //itemsList.add(recipe)
         customAdapter.addItem(recipe)
         recipe = RecipeModel("1","1","1","1")
-        //itemsList.add(recipe)
         customAdapter.addItem(recipe)
-        //customAdapter.notifyDataSetChanged()
     }
 }
