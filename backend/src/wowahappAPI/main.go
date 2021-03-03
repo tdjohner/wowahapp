@@ -38,6 +38,7 @@ func handleRequest() {
 	router.HandleFunc("/allrecipes/", getAllRecipes)
 	router.HandleFunc("/allprofessions/", getProfessions)
 	router.HandleFunc("/allexpansions/", getExpansions)
+	router.HandleFunc("/itemlisting/{itemName}/{realmID}", getItemListing)
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
 	router.HandleFunc("/createuser/", createUser).Methods("POST")
 	log.Fatal(http.ListenAndServe(":49155", router))
@@ -46,6 +47,18 @@ func handleRequest() {
 func landingPage(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(res, "Hello World: Landing Page")
 	fmt.Println("Endpoint: Landing Page")
+}
+
+func getItemListing(res http.ResponseWriter, req *http.Request) {
+
+	vars := mux.Vars(req)
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
+	defer db.Close()
+	item := dbh.GetAuctionByName(vars["itemName"], vars["realmID"], db)
+	json.NewEncoder(res).Encode(item)
 }
 
 func getItem(res http.ResponseWriter, req *http.Request) {

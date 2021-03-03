@@ -31,6 +31,12 @@ type WoWItem struct {
 	IsStackable bool `db:isstackable`
 }
 
+type AuctionSlice struct {
+	Name string `db:name`
+	UnitPrice int `db:unitPrice`
+	Buyout int `db:buyout`
+}
+
 //Get the connection string from our config
 func GetConnectionString() string {
 	// reading in from web.json from https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
@@ -45,6 +51,23 @@ func GetConnectionString() string {
 		fmt.Println(err)
 	}
 	return fmt.Sprintf(baseString, webconfig.ConnectionString.User, webconfig.ConnectionString.Pw, webconfig.ConnectionString.Ip, webconfig.ConnectionString.Port, webconfig.ConnectionString.Schema)
+}
+
+func GetAuctionByName(name string, realmID string, db *sql.DB) AuctionSlice {
+	var auct AuctionSlice
+	q := fmt.Sprintf("SELECT name, unitPrice, buyout FROM tbl_auctions_current auct JOIN tbl_item itm on itm.id = auct.itemID WHERE name = \"%s\" and cnctdRealmID = \"%s\";", name, realmID )
+	rows, err := db.Query(q)
+	if nil != err {
+		fmt.Println("Error getting Auction Slice from database: ", err.Error())
+	}
+	defer rows.Close()
+	if rows.Next() {
+		err = rows.Scan(&auct.Name, &auct.UnitPrice, &auct.Buyout)
+		if nil != err {
+			fmt.Println("Error marshalling DB object: ", err.Error())
+		}
+	}
+	return auct
 }
 
 //Get item from our database by it's name
