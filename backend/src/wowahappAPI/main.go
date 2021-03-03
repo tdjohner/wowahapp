@@ -25,13 +25,9 @@ func main() {
 	handleRequest()
 }
 
-type Tester struct {
+type Recipe struct {
 	ID  int    `json:"id"`
-	Col string `json:"data"`
-}
-
-var jsonObject struct {
-	Data []Tester `json:"data"`
+	Name string `json:"name"`
 }
 
 func handleRequest() {
@@ -39,7 +35,7 @@ func handleRequest() {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/", landingPage)
-	//router.HandleFunc("/rp/", getRecipe)
+	router.HandleFunc("/allrecipes/", getAllRecipes)
 	router.HandleFunc("/allprofessions/", getProfessions)
 	router.HandleFunc("/allexpansions/", getExpansions)
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
@@ -63,8 +59,10 @@ func getItem(res http.ResponseWriter, req *http.Request) {
 	item := dbh.GetItemByName(vars["itemName"], db)
 	json.NewEncoder(res).Encode(item)
 }
-/*
-func getRecipe(res http.ResponseWriter, req *http.Request) {
+
+func getAllRecipes(res http.ResponseWriter, req *http.Request) {
+
+	var recipes []Recipe
 
 	connectionString := dbh.GetConnectionString()
 	db, err := sql.Open("mysql", connectionString)
@@ -73,25 +71,21 @@ func getRecipe(res http.ResponseWriter, req *http.Request) {
 	}
 	defer db.Close()
 
-	result, err := db.Query("SELECT * FROM recipe;")
+	result, err := db.Query("SELECT * FROM tbl_recipes;")
 	if err != nil {
 		fmt.Println("Error writing to database: " + err.Error())
 	} else {
 		defer result.Close()
 
 		for result.Next() {
-			var t Tester
-			result.Scan(&t.ID, &t.Col)
-			jsonObject.Data = append(jsonObject.Data, t)
+			var r Recipe
+			result.Scan(&r.ID, &r.Name)
+			recipes = append(recipes, r)
 		}
 
-		fmt.Println(result)
-		json.NewEncoder(res).Encode(jsonObject)
+		json.NewEncoder(res).Encode(recipes)
 	}
-
 }
-
- */
 
 // Create database record example
 func createUser(res http.ResponseWriter, req *http.Request) {
