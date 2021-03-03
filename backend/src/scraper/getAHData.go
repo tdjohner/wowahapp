@@ -32,7 +32,7 @@ var newAuctionTableQuery = "CREATE TABLE tbl_auctions_current (" +
 	"timeLeft VARCHAR(16))"
 
 func main() {
-	//scrapeRecipes()
+	scrapeRecipes()
 	supportedRealms := getSupportedRealms()
 	connectionString := dbh.GetConnectionString()
 	accessToken := getAccessToken()
@@ -272,6 +272,7 @@ func PullRecipe(id int, accessToken string) (Recipes, int) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(body, &Recipe)
 
+
 	return Recipe, error
 }
 
@@ -342,30 +343,29 @@ func checkItemExists(id int) bool {
 
 func scrapeRecipes() {
 	connectionString := dbh.GetConnectionString()
+	access_token := getAccessToken()
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		fmt.Println("Connection to database failed: " + err.Error())
 	}
 	defer db.Close()
 
-	//UNCOMMENT THIS IF TABLES NOT CREATE ALREADY.
-	//createTables(db)
 	//Possibly does not need to be as high as 100k. No recipes exist lower than 1800.
-	for i := 1800; i < 100000; i++ {
+	for i := 24164; i < 100000; i++ {
 		var Recipe Recipes
-		Recipe, myerr := PullRecipe(i, getAccessToken())
+		Recipe, err := PullRecipe(i, access_token)
 		//Check if 404, no recipe for i
-		if myerr == 404 {
+		if err == 404 {
 			fmt.Println("No recipe available for ID ", i)
 			time.Sleep(250 * time.Millisecond)
 			continue
 		}
 		fmt.Printf("%+v\n", Recipe)
 		//Insert Recipe into Recipes table if non 404.
-		query, err := db.Query("INSERT INTO tbl_recipes(ID,Name) VALUES (?,?)", Recipe.ID, Recipe.Name)
+		query, myerr := db.Query("INSERT INTO tbl_recipes(ID,Name) VALUES (?,?)", Recipe.ID, Recipe.Name)
 		query.Close()
-		if nil != err {
-			fmt.Println("Error Inserting Recipe: ", err.Error())
+		if nil != myerr {
+			fmt.Println("Error Inserting Recipe: ", myerr.Error())
 			fmt.Println(query)
 		}
 		//Now insert into reagent table.
@@ -376,7 +376,6 @@ func scrapeRecipes() {
 
 			reagentQuery.Close()
 			if nil != err {
-
 				fmt.Println("Error Inserting Reagent: ", err.Error())
 				fmt.Println(reagentQuery)
 			}
@@ -386,30 +385,3 @@ func scrapeRecipes() {
 	}
 }
 
-//Create our recipes and reagents table
-func createTables(db *sql.DB) {
-
-	var recipeTableBaseQuery = "CREATE TABLE tbl_recipes (" +
-		"id INT  NOT NULL AUTO_INCREMENT primary key, " +
-		"name VARCHAR(45))"
-
-	var reagentsTableBaseQuery = "CREATE TABLE tbl_reagents (" +
-		"category varchar(45), " +
-		"name varchar(45), " +
-		"quantity INT, " +
-		"reagentItemID INT, " +
-		"recipeID INT)"
-	//Create the recipe table
-	conn, err := db.Query(recipeTableBaseQuery)
-	if nil != err {
-		fmt.Println("Error creating a new recipe Table: ", err)
-	}
-	conn.Close()
-
-	//Create the reagents table
-	newcon, err := db.Query(reagentsTableBaseQuery)
-	if nil != err {
-		fmt.Println("Error creating a new reagents Table: ", err)
-	}
-	newcon.Close()
-}
