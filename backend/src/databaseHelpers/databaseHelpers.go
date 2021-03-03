@@ -31,6 +31,7 @@ type WoWItem struct {
 	IsStackable bool `db:isstackable`
 }
 
+//Get the connection string from our config
 func GetConnectionString() string {
 	// reading in from web.json from https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
 	baseString := "%s:%s@tcp(%s:%s)/%s"
@@ -46,9 +47,10 @@ func GetConnectionString() string {
 	return fmt.Sprintf(baseString, webconfig.ConnectionString.User, webconfig.ConnectionString.Pw, webconfig.ConnectionString.Ip, webconfig.ConnectionString.Port, webconfig.ConnectionString.Schema)
 }
 
+//Get item from our database by it's name
 func GetItemByName(name string, db *sql.DB) WoWItem {
 	var item WoWItem
-	q := fmt.Sprintf("SELECT * FROM tblitem WHERE name = \"%s\";", name)
+	q := fmt.Sprintf("SELECT * FROM tbl_item WHERE name = \"%s\";", name)
 	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error getting Item from database: ", err.Error())
@@ -73,9 +75,10 @@ func GetItemByName(name string, db *sql.DB) WoWItem {
 	return item
 }
 
+//Get Professions from our database
 func GetAllProfessions(db *sql.DB) []string {
 	professions := []string{}
-	q := "SELECT name FROM luprofessions"
+	q := "SELECT name FROM lu_professions"
 	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error retrieving professions from database: ", err.Error())
@@ -89,9 +92,10 @@ func GetAllProfessions(db *sql.DB) []string {
 	return professions
 }
 
+//Get Expansions from our database
 func GetAllExpacs(db *sql.DB) []string {
 	expacs := []string{}
-	q := "SELECT name FROM luexpansions"
+	q := "SELECT name FROM lu_expansions"
 	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error retrieving professions from database: ", err.Error())

@@ -17,8 +17,12 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-var auctionTableBaseQuery = "CREATE TABLE %s (" +
+
+var tableName = "tbl_auctions_current"
+
+var newAuctionTableQuery = "CREATE TABLE tbl_auctions_current (" +
 	"id INT unsigned auto_increment primary key, " +
+	"cnctdRealmID INT, " +
 	"auctionID INT, " +
 	"itemID INT, " +
 	"quantity INT, " +
@@ -28,7 +32,7 @@ var auctionTableBaseQuery = "CREATE TABLE %s (" +
 	"timeLeft VARCHAR(16))"
 
 func main() {
-	//scrapeRecipes()
+	scrapeRecipes()
 	supportedRealms := getSupportedRealms()
 	connectionString := dbh.GetConnectionString()
 	accessToken := getAccessToken()
@@ -38,21 +42,25 @@ func main() {
 	}
 	defer db.Close()
 
-	for _, r := range supportedRealms.SupportedRealms {
+	//First we rename the old table. This is currently our only method of archiving historical price data
+	archiveTableName := fmt.Sprintf("aucts_date%s",time.Now().Local().Format("2006_01_02_15_04_05"))
+	renameQuery := fmt.Sprintf("RENAME TABLE tbl_auctions_current TO %s", archiveTableName)
+	conn, err := db.Query(renameQuery)
+	if nil != err {
+		fmt.Println("Error creating Archive Auction Table: ", err)
+	}
+	conn.Close()
+	conn, err = db.Query(newAuctionTableQuery)
+	if nil != err {
+		fmt.Println("Error creating a new Auction Table: ", err)
+	}
+	conn.Close()
 
-		//first we create a fresh table for the auctions
-		tableName := fmt.Sprintf("aucts_Realm%d_date%s", r, time.Now().Local().Format("2006_01_02_15_04_05"))
-		newTableQuery := fmt.Sprintf(auctionTableBaseQuery, tableName)
-		conn, err := db.Query(newTableQuery)
-		if nil != err {
-			fmt.Println("Error creating a new Auction Table: ", err)
-		}
-		conn.Close()
-
+	for _, realm := range supportedRealms.SupportedRealms {
 		//now we put all the realms auctions in the new table
-		auctions := PullAuctions(r, getAccessToken())
-		for _, a := range auctions.Auctions {
-			PushAuction(a, tableName, db)
+		auctions := PullAuctions(realm, getAccessToken())
+		for _, auction := range auctions.Auctions {
+			PushAuction(auction, tableName, realm, db)
 		}
 
 		// get all the ItemIDs from the auctions we just inserted
@@ -71,7 +79,7 @@ func main() {
 		// get all existing ItemIDs from the Items table
 		var existingID int
 		var existingIDs []int
-		conn, err = db.Query(fmt.Sprintf("SELECT DISTINCT id from tblitem order by id"))
+		conn, err = db.Query(fmt.Sprintf("SELECT DISTINCT id from tbl_item order by id"))
 		if nil != err {
 			fmt.Println("Error querying existingIDs: ", err)
 		}
@@ -264,14 +272,16 @@ func PullRecipe(id int, accessToken string) (Recipes, int) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(body, &Recipe)
 
+
 	return Recipe, error
 }
 
 //place Item row in our database
 func PushItem(item Item, db *sql.DB) {
 
-	query := "INSERT INTO tblitem (id, name, quality, class, subclass, inventoryType, level, purchasePrice, sellPrice, isEquipable, isStackable) " +
+	query := "INSERT INTO tbl_item (id, name, quality, class, subclass, inventoryType, level, purchasePrice, sellPrice, isEquipable, isStackable) " +
 		"VALUES (%d, \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", %d, %d, %d, %t, %t)"
+
 	query = fmt.Sprintf(query,
 		item.ID, // hideous but instances of quotes crash our queries
 		strings.Replace(strings.Replace(item.Name, "'", "", -1), "\"", "", -1),
@@ -292,10 +302,11 @@ func PushItem(item Item, db *sql.DB) {
 	}
 }
 
-func PushAuction(auction Auction, tableName string, db *sql.DB) {
 
-	query := fmt.Sprintf("INSERT INTO %s (unitPrice, bid, buyout, auctionID, itemID, quantity, timeLeft) "+
-		"VALUES (%d, %d, %d, %d, %d, %d, \"%s\");",
+func PushAuction(auction Auction, tableName string, realm int,  db *sql.DB) {
+
+	query := fmt.Sprintf("INSERT INTO %s (unitPrice, bid, buyout, auctionID, itemID, quantity, cnctdRealmID, timeLeft) " +
+		"VALUES (%d, %d, %d, %d, %d, %d, %d, \"%s\");",
 		tableName,
 		auction.UnitPrice,
 		auction.Bid,
@@ -303,6 +314,7 @@ func PushAuction(auction Auction, tableName string, db *sql.DB) {
 		auction.AuctionID,
 		auction.Item.ItemID,
 		auction.Quantity,
+		realm,
 		auction.TimeLeft)
 
 	rows, err := db.Query(query)
@@ -320,7 +332,7 @@ func checkItemExists(id int) bool {
 	}
 	defer db.Close()
 
-	rows, err := db.Query("SELECT * FROM tblitem WHERE id = " + string(id))
+	rows, err := db.Query("SELECT * FROM tbl_item WHERE id = " + string(id))
 	defer rows.Close()
 	if rows.Next() {
 		return true
@@ -331,41 +343,39 @@ func checkItemExists(id int) bool {
 
 func scrapeRecipes() {
 	connectionString := dbh.GetConnectionString()
+	access_token := getAccessToken()
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		fmt.Println("Connection to database failed: " + err.Error())
 	}
 	defer db.Close()
 
-	//UNCOMMENT THIS IF TABLES NOT CREATE ALREADY.
-	//createTables(db)
 	//Possibly does not need to be as high as 100k. No recipes exist lower than 1800.
-	for i := 1800; i < 100000; i++ {
+	for i := 24164; i < 100000; i++ {
 		var Recipe Recipes
-		Recipe, myerr := PullRecipe(i, getAccessToken())
+		Recipe, err := PullRecipe(i, access_token)
 		//Check if 404, no recipe for i
-		if myerr == 404 {
+		if err == 404 {
 			fmt.Println("No recipe available for ID ", i)
 			time.Sleep(250 * time.Millisecond)
 			continue
 		}
 		fmt.Printf("%+v\n", Recipe)
 		//Insert Recipe into Recipes table if non 404.
-		query, err := db.Query("INSERT INTO recipes(ID,Name) VALUES (?,?)", Recipe.ID, Recipe.Name)
+		query, myerr := db.Query("INSERT INTO tbl_recipes(ID,Name) VALUES (?,?)", Recipe.ID, Recipe.Name)
 		query.Close()
-		if nil != err {
-			fmt.Println("Error Inserting Recipe: ", err.Error())
+		if nil != myerr {
+			fmt.Println("Error Inserting Recipe: ", myerr.Error())
 			fmt.Println(query)
 		}
 		//Now insert into reagent table.
 		//Can add reagentitemid if needed.
 		for i := 0; i < len(Recipe.Reagents); i++ {
-			reagentQuery, err := db.Query("INSERT INTO reagents(recipeID,name,category,quantity) VALUES (?,?,?,?)",
+			reagentQuery, err := db.Query("INSERT INTO tbl_reagents(recipeID,name,category,quantity) VALUES (?,?,?,?)",
 				Recipe.ID, Recipe.Reagents[i].Reagent.Name, "none", Recipe.Reagents[i].Quantity)
 
 			reagentQuery.Close()
 			if nil != err {
-
 				fmt.Println("Error Inserting Reagent: ", err.Error())
 				fmt.Println(reagentQuery)
 			}
@@ -375,30 +385,3 @@ func scrapeRecipes() {
 	}
 }
 
-//Create our recipes and reagents table
-func createTables(db *sql.DB) {
-
-	var recipeTableBaseQuery = "CREATE TABLE recipes (" +
-		"id INT  NOT NULL AUTO_INCREMENT primary key, " +
-		"name VARCHAR(45))"
-
-	var reagentsTableBaseQuery = "CREATE TABLE reagents (" +
-		"category varchar(45), " +
-		"name varchar(45), " +
-		"quantity INT, " +
-		"reagentItemID INT, " +
-		"recipeID INT)"
-	//Create the recipe table
-	conn, err := db.Query(recipeTableBaseQuery)
-	if nil != err {
-		fmt.Println("Error creating a new recipe Table: ", err)
-	}
-	conn.Close()
-
-	//Create the reagents table
-	newcon, err := db.Query(reagentsTableBaseQuery)
-	if nil != err {
-		fmt.Println("Error creating a new reagents Table: ", err)
-	}
-	newcon.Close()
-}
