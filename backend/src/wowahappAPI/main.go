@@ -9,12 +9,15 @@ https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
 */
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
+	"golang.org/x/crypto/acme/autocert"
 	dbh "../databaseHelpers"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -32,8 +35,16 @@ type Recipe struct {
 
 func handleRequest() {
 
-	router := mux.NewRouter().StrictSlash(true)
+	//Citation: configuring muxer to work with autocert lib
+	// https://stackoverflow.com/questions/50311532/autocert-using-gorilla-mux
+	// https://blog.cloudflare.com/exposing-go-on-the-internet/
+	manager := &autocert.Manager {
+		Prompt: autocert.AcceptTOS,
+		Cache: autocert.DirCache("./secret-dir"),
+		HostPolicy: autocert.HostWhitelist("wowahapp.com", "w"),
+	}
 
+	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", landingPage)
 	router.HandleFunc("/allrecipes/", getAllRecipes)
 	router.HandleFunc("/allprofessions/", getProfessions)
@@ -41,7 +52,19 @@ func handleRequest() {
 	router.HandleFunc("/itemlisting/{itemName}/{realmID}", getItemListing)
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
 	router.HandleFunc("/createuser/", createUser).Methods("POST")
-	log.Fatal(http.ListenAndServe(":49155", router))
+
+	server := &http.Server {
+		Addr:	":https",
+		Handler: router,
+		ReadTimeout: 5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout: 64 * time.Second,
+		TLSConfig: &tls.Config {
+			GetCertificate: manager.GetCertificate,
+			PreferServerCipherSuites: true,
+		},
+	}
+	log.Fatal(server.ListenAndServeTLS("", ""))
 }
 
 func landingPage(res http.ResponseWriter, req *http.Request) {
