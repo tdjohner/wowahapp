@@ -40,7 +40,7 @@ func handleRequest() {
 	// https://blog.cloudflare.com/exposing-go-on-the-internet/
 	manager := &autocert.Manager {
 		Prompt: autocert.AcceptTOS,
-		Cache: autocert.DirCache("./secret-dir"),
+		Cache: autocert.DirCache("/wowahapp/backend/src/wowahappAPI/secret-dir"),
 		HostPolicy: autocert.HostWhitelist("wowahapp.com", "w"),
 	}
 
@@ -53,11 +53,12 @@ func handleRequest() {
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
 	router.HandleFunc("/createuser/", createUser).Methods("POST")
 
+
 	server := &http.Server {
 		Addr:	":https",
 		Handler: router,
-		ReadTimeout: 5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout: 4 * time.Second,
+		WriteTimeout: 8 * time.Second,
 		IdleTimeout: 64 * time.Second,
 		TLSConfig: &tls.Config {
 			GetCertificate: manager.GetCertificate,
