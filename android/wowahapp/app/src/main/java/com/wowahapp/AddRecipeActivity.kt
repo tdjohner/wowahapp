@@ -15,7 +15,19 @@ import org.json.JSONException
 import org.json.JSONObject
 
 
-class AddRecipeActivity : AppCompatActivity() {
+interface PriceInterface {
+    fun onCallback(response : String)
+}
+
+interface AuctionNameInterface {
+    fun onCallback(response : String)
+}
+
+class AddRecipeActivity : AppCompatActivity(), PriceInterface, AuctionNameInterface {
+
+    interface MyCallback {
+        fun onValueChanged()
+    }
 
     lateinit var searchTextView : TextView
     lateinit var professionSpinner : Spinner
@@ -24,6 +36,12 @@ class AddRecipeActivity : AppCompatActivity() {
     private lateinit var recipeAdapter : CustomAdapter
     private val recipeNames = ArrayList<String>()
     private val recipeList = ArrayList<RecipeModel>()
+
+    val myInterface = this
+
+    override fun onCallback(response : String) {
+
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +59,6 @@ class AddRecipeActivity : AppCompatActivity() {
         recipeRecycler.layoutManager = LinearLayoutManager(applicationContext)
 
         getAllRecipes(recipeNames)
-        //println(recipeNames.size)
 
         /* Here we create the recipeModels and add them to the Adapter
         for (i in 0 until recipeNames.size) {
@@ -56,18 +73,16 @@ class AddRecipeActivity : AppCompatActivity() {
 
     }
 
-    fun getItemPriceAH(name : String) : Int {
-        var url = "http://192.168.0.24:49155/" + name +"/" + "76"//realmID
-        url = url.replace(" ", "%20") // my crappy URL encoding
-        var unitPrice : String = "0"
-        var buyout : String = "0"
-        val request = JsonArrayRequest(Request.Method.GET, url, null,
+    fun getItemListing(itemName : String, realmID : String) : Int {
+        val url = "https://wowahapp.com:443/itemlisting/" + itemName.replace(" ", "%20") + "/" +  realmID // crappy URL encoding
+        var unitPrice : Int = 0
+        var buyout : Int = 0
+        val request = JsonObjectRequest(Request.Method.GET, url, null,
             Response.Listener {
                     response -> try {
-                        //nasty parsing of returned JSON but it's functional
-                        //price = response.getString(0).split(":")[2].replace("\"","").replace("}", ""))
-                        println(response.getString(0).split(":")[2])
-                        println(response.getString(0).split(":")[4])
+                        unitPrice = response.getString("UnitPrice").toInt()
+                        buyout = response.getString("Buyout").toInt()
+                        myInterface.onCallback((unitPrice + buyout).toString())
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
@@ -78,7 +93,7 @@ class AddRecipeActivity : AppCompatActivity() {
     }
 
     fun getAllRecipes(recipeList : ArrayList<String>) {
-        val url = "http://192.168.0.24:49155/allrecipes"
+        val url = "https://wowahapp.com/allrecipes/"
         val request = JsonArrayRequest(Request.Method.GET, url, null,
             Response.Listener {
                 response -> try {
@@ -98,6 +113,7 @@ class AddRecipeActivity : AppCompatActivity() {
                         vendorPrice = "Err"
                         note = "Note"
 
+                        //listedPrice = getItemListing(itemName, "76").toString()
                         val recipeModel = RecipeModel(itemName, listedPrice, vendorPrice, note)
                         recipeAdapter.addItem(recipeModel)
 
@@ -110,13 +126,8 @@ class AddRecipeActivity : AppCompatActivity() {
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 
-    fun getItemListing(itemName : String, realmID : String) : Int {
-        val url = "http://192.168.0.24:49155/itemlisting/" + itemName.replace(" ", "%20") + realmID // crappy URL encoding
-        return 7
-    }
-
     fun getAllProfessions(professionSpinner : Spinner) {
-        val url = "http://35.193.69.215:49155/allprofessions"
+        val url = "https://wowahapp.com/allprofessions"
         val request = JsonArrayRequest(Request.Method.GET, url, null,
             Response.Listener {
                 response -> try {
@@ -134,7 +145,7 @@ class AddRecipeActivity : AppCompatActivity() {
     }
 
     fun getAllExpansions(expansionSpinner : Spinner) {
-        val url = "http://35.193.69.215:49155/allexpansions"
+        val url = "https://wowahapp.com/allexpansions"
         val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response ->try {
             var expArray : ArrayList<String> = ArrayList<String>()
             for (i in 0 until response.length()) {
