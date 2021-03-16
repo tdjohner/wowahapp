@@ -77,15 +77,15 @@ class MainActivity : AppCompatActivity() {
             // Launch the authentication passing the callback where the results will be received
             .start(this,  object : Callback<Credentials, AuthenticationException> {
                 // Called when there is an authentication failure
-                override fun onFailure(exception: AuthenticationException) {
-                    Toast.makeText(this@MainActivity, "\"Failure: ${exception.getCode()}\"", Toast.LENGTH_SHORT).show()
+                override fun onFailure(error: AuthenticationException) {
+                    Toast.makeText(this@MainActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
                 }
 
                 // Called when authentication completed successfully
-                override fun onSuccess(credentials: Credentials) {
+                override fun onSuccess(result: Credentials) {
                     // Get the access token from the credentials object.
                     // This can be used to call APIs
-                    val accessToken = credentials.accessToken
+                    val accessToken = result.accessToken
 
                     val homeIntent = Intent(this@MainActivity, HomeActivity::class.java)
                     startActivity(homeIntent)
@@ -97,34 +97,20 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
-    private fun logout() {
-        WebAuthProvider.logout(account)
-            .withScheme(getString(R.string.com_auth0_scheme))
-            .start(this, object: Callback<Void?, AuthenticationException> {
-                override fun onSuccess(payload: Void?) {
-                    Toast.makeText(this@MainActivity, "Logged out", Toast.LENGTH_SHORT).show()
-                }
-
-                override fun onFailure(exception: AuthenticationException) {
-                    Toast.makeText(this@MainActivity, "\"Failure: ${exception.getCode()}\"", Toast.LENGTH_SHORT).show()
-                }
-            })
-    }
-
     private fun showUserProfile(accessToken: String) {
         var client = AuthenticationAPIClient(account)
 
         // With the access token, call `userInfo` and get the profile from Auth0.
         client.userInfo(accessToken)
             .start(object : Callback<UserProfile, AuthenticationException> {
-                override fun onFailure(exception: AuthenticationException) {
-                    Toast.makeText(this@MainActivity, "\"Failure: ${exception.getCode()}\"", Toast.LENGTH_SHORT).show()
+                override fun onFailure(error: AuthenticationException) {
+                    Toast.makeText(this@MainActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
                 }
 
-                override fun onSuccess(profile: UserProfile) {
+                override fun onSuccess(result: UserProfile) {
                     // We have the user's profile!
-                    val email = profile.email
-                    val name = profile.nickname
+                    val email = result.email
+                    val name = result.nickname
                     Toast.makeText(this@MainActivity, email + "\n" + name, Toast.LENGTH_SHORT).show()
                 }
             })

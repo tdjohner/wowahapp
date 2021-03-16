@@ -73,7 +73,7 @@ class HomeActivity : AppCompatActivity() {
         WebAuthProvider.logout(account)
             .withScheme(getString(R.string.com_auth0_scheme))
             .start(this, object: Callback<Void?, AuthenticationException> {
-                override fun onSuccess(payload: Void?) {
+                override fun onSuccess(result: Void?) {
                     cachedCredentials = null
                     cachedUserProfile = null
 
@@ -84,8 +84,8 @@ class HomeActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
 
-                override fun onFailure(exception: AuthenticationException) {
-                    Toast.makeText(this@HomeActivity, "\"Failure: ${exception.getCode()}\"", Toast.LENGTH_SHORT).show()
+                override fun onFailure(error: AuthenticationException) {
+                    Toast.makeText(this@HomeActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
                 }
             })
     }
