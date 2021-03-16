@@ -46,7 +46,7 @@ func handleRequest() {
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", landingPage)
-	router.HandleFunc("/allrecipes/", getAllRecipes)
+	router.HandleFunc("/allrecipes/{realmID}", getAllRecipes)
 	router.HandleFunc("/allprofessions/", getProfessions)
 	router.HandleFunc("/allexpansions/", getExpansions)
 	router.HandleFunc("/itemlisting/{itemName}/{realmID}", getItemListing)
@@ -100,6 +100,7 @@ func getItem(res http.ResponseWriter, req *http.Request) {
 func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 
 	var recipes []Recipe
+	vars := mux.Vars(req)
 
 	connectionString := dbh.GetConnectionString()
 	db, err := sql.Open("mysql", connectionString)
@@ -108,7 +109,7 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 	}
 	defer db.Close()
 
-	result, err := db.Query("SELECT * FROM tbl_recipes;")
+	result, err := db.Query("SELECT rcp.id, rcp.name FROM tbl_recipes rcp join tbl_item itm on rcp.name = itm.name join tbl_auctions_current auct on auct.itemID = itm.id where auct.cnctdRealmID = " +vars["realmID"] + ";")
 	if err != nil {
 		fmt.Println("Error writing to database: " + err.Error())
 	} else {
@@ -163,3 +164,4 @@ func getExpansions(res http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(res).Encode(expacs)
 }
 
+ 

@@ -10,24 +10,16 @@ import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.Response
 import com.android.volley.toolbox.*
+import com.wowahapp.AuctionDataService
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.math.BigInteger
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
-interface PriceInterface {
-    fun onCallback(response : String)
-}
-
-interface AuctionNameInterface {
-    fun onCallback(response : String)
-}
-
-class AddRecipeActivity : AppCompatActivity(), PriceInterface, AuctionNameInterface {
-
-    interface MyCallback {
-        fun onValueChanged()
-    }
+class AddRecipeActivity : AppCompatActivity() {
 
     lateinit var searchTextView : TextView
     lateinit var professionSpinner : Spinner
@@ -37,29 +29,63 @@ class AddRecipeActivity : AppCompatActivity(), PriceInterface, AuctionNameInterf
     private val recipeNames = ArrayList<String>()
     private val recipeList = ArrayList<RecipeModel>()
 
-    val myInterface = this
-
-    override fun onCallback(response : String) {
-
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_recipe)
 
+        val auctionDataService = AuctionDataService()
+
         searchTextView = findViewById<TextView>(R.id.searchTextView) as TextView
         professionSpinner = findViewById<Spinner>(R.id.professionSelectSpinner) as Spinner
         expansionSpinner = findViewById<Spinner>(R.id.expansionSelectSpinner) as Spinner
-        getAllProfessions(professionSpinner)
-        getAllExpansions(expansionSpinner)
-
         recipeRecycler = findViewById(R.id.recipeRecycler)
         recipeAdapter = CustomAdapter(this.recipeList)
         recipeRecycler.adapter = recipeAdapter
         recipeRecycler.layoutManager = LinearLayoutManager(applicationContext)
 
-        getAllRecipes(recipeNames)
+        val realmID = "76"
 
+        auctionDataService.getAllRecipes(realmID, applicationContext, object : AuctionDataService.ArrayListListener {
+            override fun onResponse(response: ArrayList<String>) {
+                // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
+                for (r in response) {
+                    var model = RecipeModel(r, "x", "x", "note")
+                    auctionDataService.getItemListing(r, "76", applicationContext, object : AuctionDataService.VolleyResponseListener {
+                        override fun onResponse(response: String) {
+                            //Toast.makeText(applicationContext, response, Toast.LENGTH_SHORT)
+                            model.setSalePrice(response)
+                        }
+                        override fun onError(error: String) {
+                            println("Error getting price listing data: " + error)
+                        }
+                    })
+                    recipeAdapter.addItem(model)
+                }
+            }
+
+            override fun onError(error: String) {
+                println("Error in getAllRecipes: " + error)
+            }
+        })
+
+        auctionDataService.getAllProfessions(applicationContext, object : AuctionDataService.ArrayListListener {
+            override fun onResponse(response: ArrayList<String>) {
+                professionSpinner.adapter =  ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response)
+            }
+            override fun onError(error: String) {
+                println("Error in getAllProfessions :" + error)
+            }
+        })
+
+        auctionDataService.getAllExpansions(applicationContext, object : AuctionDataService.ArrayListListener {
+            override fun onResponse(response: ArrayList<String>) {
+                expansionSpinner.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response)
+            }
+            override fun onError(error: String) {
+                println("Error in getAllExpansions :" + error)
+            }
+        })
         /* Here we create the recipeModels and add them to the Adapter
         for (i in 0 until recipeNames.size) {
             //first we get the lowest current AH price of the item, if available
@@ -69,94 +95,6 @@ class AddRecipeActivity : AppCompatActivity(), PriceInterface, AuctionNameInterf
         }
 
          */
-
-
-    }
-
-    fun getItemListing(itemName : String, realmID : String) : Int {
-        val url = "https://wowahapp.com:443/itemlisting/" + itemName.replace(" ", "%20") + "/" +  realmID // crappy URL encoding
-        var unitPrice : Int = 0
-        var buyout : Int = 0
-        val request = JsonObjectRequest(Request.Method.GET, url, null,
-            Response.Listener {
-                    response -> try {
-                        unitPrice = response.getString("UnitPrice").toInt()
-                        buyout = response.getString("Buyout").toInt()
-                        myInterface.onCallback((unitPrice + buyout).toString())
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
-            },
-            Response.ErrorListener { error -> error.printStackTrace() })
-        VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
-        return unitPrice.toInt() + buyout.toInt()
-    }
-
-    fun getAllRecipes(recipeList : ArrayList<String>) {
-        val url = "https://wowahapp.com/allrecipes/"
-        val request = JsonArrayRequest(Request.Method.GET, url, null,
-            Response.Listener {
-                response -> try {
-                    var itemName : String
-                    var listedPrice : String
-                    var vendorPrice : String
-                    var note : String
-                    for (i in 0 until response.length()) {
-                        /*!! The Recycler View gets updated each time we add a recipeModel to the recipeAdapter.
-                        The Volley http calls are made asynchronously which means we can't reference data objects
-                        outside their respective requests, since they may not be populated. However, with nested
-                        requests I think we actually leverage that asynchronous behavior to our advantage.
-                         */
-                        //Declare all needed variables with their default values:
-                        itemName = response.getString(i).split(":")[2].replace("\"","").replace("}", "")
-                        listedPrice = "Err"
-                        vendorPrice = "Err"
-                        note = "Note"
-
-                        //listedPrice = getItemListing(itemName, "76").toString()
-                        val recipeModel = RecipeModel(itemName, listedPrice, vendorPrice, note)
-                        recipeAdapter.addItem(recipeModel)
-
-                    }
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-            },
-            Response.ErrorListener { error -> error.printStackTrace() })
-        VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
-    }
-
-    fun getAllProfessions(professionSpinner : Spinner) {
-        val url = "https://wowahapp.com/allprofessions"
-        val request = JsonArrayRequest(Request.Method.GET, url, null,
-            Response.Listener {
-                response -> try {
-                    var profArray : ArrayList<String> = ArrayList<String>()
-                    for (i in 0 until response.length()) {
-                        profArray.add(response.getString(i))
-                    }
-                    professionSpinner.adapter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, profArray)
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-            },
-            Response.ErrorListener { error -> error.printStackTrace() })
-            VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
-    }
-
-    fun getAllExpansions(expansionSpinner : Spinner) {
-        val url = "https://wowahapp.com/allexpansions"
-        val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response ->try {
-            var expArray : ArrayList<String> = ArrayList<String>()
-            for (i in 0 until response.length()) {
-                expArray.add(response.getString(i))
-            }
-            expansionSpinner.adapter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, expArray)
-        } catch (e: JSONException) {
-            e.printStackTrace()
-        }
-        }, Response.ErrorListener { error -> error.printStackTrace() })
-        VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 }
 
