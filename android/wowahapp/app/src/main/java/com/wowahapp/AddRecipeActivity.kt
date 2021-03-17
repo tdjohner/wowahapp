@@ -53,7 +53,6 @@ class AddRecipeActivity : AppCompatActivity() {
                     var model = RecipeModel(r, "x", "x", "note")
                     auctionDataService.getItemListing(r, "76", applicationContext, object : AuctionDataService.VolleyResponseListener {
                         override fun onResponse(response: String) {
-                            //Toast.makeText(applicationContext, response, Toast.LENGTH_SHORT)
                             model.setSalePrice(response)
                         }
                         override fun onError(error: String) {

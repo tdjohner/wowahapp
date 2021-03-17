@@ -6,6 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".HomeActivity">
 
+    <ImageView
+        android:id="@+id/loginBackgroundOne"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/longboy3"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <Button
         android:id="@+id/addRecipeButton"
         android:layout_width="233dp"
@@ -20,7 +29,7 @@
         android:id="@+id/recyclerView3"
         android:layout_width="335dp"
         android:layout_height="523dp"
-        android:background="@color/green"
+        android:background="@drawable/text_focus"
         app:layout_constraintBottom_toTopOf="@+id/addRecipeButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
