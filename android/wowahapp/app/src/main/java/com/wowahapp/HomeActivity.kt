@@ -18,6 +18,7 @@ import com.auth0.android.callback.Callback
 import com.auth0.android.provider.WebAuthProvider
 import com.auth0.android.result.Credentials
 import com.auth0.android.result.UserProfile
+import kotlin.system.exitProcess
 
 class HomeActivity : AppCompatActivity() {
 
@@ -98,6 +99,8 @@ class HomeActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(error: AuthenticationException) {
+                    moveTaskToBack(true);
+                    exitProcess(-1)
                     Toast.makeText(this@HomeActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
                 }
             })

@@ -23,6 +23,7 @@ import com.auth0.android.result.UserProfile
 import kotlinx.android.synthetic.main.activity_main.*
 
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity() {
 
@@ -90,6 +91,8 @@ class MainActivity : AppCompatActivity() {
                 .start(this,  object : Callback<Credentials, AuthenticationException> {
                     // Called when there is an authentication failure
                     override fun onFailure(error: AuthenticationException) {
+                        moveTaskToBack(true);
+                        exitProcess(-1)
                         Toast.makeText(this@MainActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
                     }
 
