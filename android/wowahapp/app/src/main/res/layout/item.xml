@@ -5,7 +5,7 @@
     android:layout_marginTop="4dp"
     android:layout_marginLeft="4dp"
     android:layout_marginRight="4dp"
-    android:background="#505050">
+    android:background="@drawable/textviewhighlight">
     <TextView
         android:id="@+id/recipeName"
         android:layout_width="match_parent"
@@ -13,14 +13,14 @@
         android:paddingLeft="2dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:textColor="#F040f0"
+        android:textColor="#FFFFFF"
         android:textSize="20sp" />
     <TextView
         android:id="@+id/averageSalePrice"
         android:layout_width="match_parent"
         android:layout_height="25dp"
         android:layout_alignParentEnd="true"
-        android:textColor="#F040f0"
+        android:textColor="#FFFFFF"
         android:gravity="end"
         android:textSize="20sp" />
     <TextView
@@ -29,7 +29,7 @@
         android:layout_height="25dp"
         android:layout_alignParentStart="true"
         android:layout_below="@id/averageSalePrice"
-        android:textColor="#F040f0"
+        android:textColor="#FFFFFF"
         android:gravity="end"
         android:textSize="20sp" />
     <TextView
