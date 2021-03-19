@@ -54,12 +54,12 @@ class AddRecipeActivity : AppCompatActivity() {
                     auctionDataService.getItemListing(r, "76", applicationContext, object : AuctionDataService.VolleyResponseListener {
                         override fun onResponse(response: String) {
                             model.setSalePrice(response)
+                            recipeAdapter.addItem(model)
                         }
                         override fun onError(error: String) {
                             println("Error getting price listing data: " + error)
                         }
                     })
-                    recipeAdapter.addItem(model)
                 }
             }
 

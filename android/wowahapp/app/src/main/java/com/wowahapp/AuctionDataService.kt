@@ -10,6 +10,7 @@ import com.android.volley.Response
 import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.JsonObjectRequest
 import org.json.JSONException
+import java.math.BigDecimal
 import java.math.BigInteger
 
 class AuctionDataService {
@@ -44,18 +45,17 @@ class AuctionDataService {
 
     fun getItemListing(itemName : String, realmID : String, applicationContext : Context, responseListener : VolleyResponseListener) {
         val url = "https://wowahapp.com:443/itemlisting/" + itemName.replace(" ", "%20") + "/" +  realmID // crappy URL encoding
-        var unitPrice : BigInteger
-        var buyoutPrice : BigInteger
-        var listingPrice : BigInteger
+        var unitPrice : Double
+        var buyoutPrice : Double
+        var listingPrice : Double
         val request = JsonObjectRequest(
             Request.Method.GET, url, null,
             Response.Listener {
                     response -> try {
-                unitPrice = response.getString("UnitPrice").toBigInteger()
-                buyoutPrice = response.getString("Buyout").toBigInteger()
-                listingPrice = unitPrice + buyoutPrice
-                Toast.makeText(applicationContext, listingPrice.toString()+" "+buyoutPrice.toString()+" "+unitPrice.toString(), Toast.LENGTH_SHORT)
-                responseListener.onResponse(listingPrice.toString())
+                unitPrice = response.getString("UnitPrice").toDouble()
+                buyoutPrice = response.getString("Buyout").toDouble()
+                listingPrice = (unitPrice + buyoutPrice)/10000
+                responseListener.onResponse(String.format("%.2f", listingPrice))
             } catch (e: JSONException) {
                 responseListener.onError(e.toString())
             }
