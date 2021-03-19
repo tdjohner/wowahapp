@@ -1,11 +1,15 @@
 package com.wowahapp
 
 import android.content.Intent
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.auth0.android.Auth0
@@ -70,12 +74,21 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun logout() {
+        val v = getSystemService(VIBRATOR_SERVICE) as Vibrator
+
         WebAuthProvider.logout(account)
             .withScheme(getString(R.string.com_auth0_scheme))
             .start(this, object: Callback<Void?, AuthenticationException> {
+                @RequiresApi(Build.VERSION_CODES.O)
                 override fun onSuccess(result: Void?) {
                     cachedCredentials = null
                     cachedUserProfile = null
+
+                    if (v.hasVibrator()) {
+                        val vEffect: VibrationEffect = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
+                        v.cancel()
+                        v.vibrate(vEffect)
+                    }
 
                     Toast.makeText(this@HomeActivity, "Logged out", Toast.LENGTH_SHORT).show()
 

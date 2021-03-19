@@ -2,14 +2,17 @@ package com.wowahapp
 
 import android.animation.ValueAnimator
 import android.content.Intent
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.VibrationEffect
 import android.view.KeyEvent
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import android.widget.Toast
 import android.os.Vibrator
+import androidx.annotation.RequiresApi
 import com.auth0.android.Auth0
 import com.auth0.android.authentication.AuthenticationAPIClient
 import com.auth0.android.authentication.AuthenticationException
@@ -27,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var forgotPass : TextView
     private lateinit var account : Auth0
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -68,6 +72,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         scrollingBackground()
+        if (v.hasVibrator()) {
+            val vEffect: VibrationEffect = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
+            v.cancel()
+            v.vibrate(vEffect)
+        }
         //sendJson sends a json object to our backend
         //sendJson()
     }
