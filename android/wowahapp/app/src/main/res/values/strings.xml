@@ -7,4 +7,8 @@
     <string name="registerUser">Register User</string>
     <string name="resetPasswordTextView">Reset Password</string>
     <string name="termsString">By creating a user account you accept the Terms of Service</string>
+
+    <string name="com_auth0_domain">wowahapp.us.auth0.com</string>
+    <string name="com_auth0_clientId">C0koH6sCLwWdrLyyQx9aNG06f4HjHaKg</string>
+    <string name="com_auth0_scheme">com.wowahapp</string>
 </resources>
