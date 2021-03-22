@@ -51,9 +51,6 @@ class HomeActivity : AppCompatActivity() {
             // log user out
             logout()
 
-            // go back to main page
-//            val mainActivityIntent = Intent(this, MainActivity::class.java)
-//            startActivity(mainActivityIntent)
         }
 
         val recyclerView: RecyclerView = findViewById(R.id.recyclerView3)
@@ -75,8 +72,6 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun logout() {
-        val v = getSystemService(VIBRATOR_SERVICE) as Vibrator
-
         WebAuthProvider.logout(account)
             .withScheme(getString(R.string.com_auth0_scheme))
             .start(this, object: Callback<Void?, AuthenticationException> {
@@ -85,12 +80,6 @@ class HomeActivity : AppCompatActivity() {
                     cachedCredentials = null
                     cachedUserProfile = null
 
-                    if (v.hasVibrator()) {
-                        val vEffect: VibrationEffect = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
-                        v.cancel()
-                        v.vibrate(vEffect)
-                    }
-
                     Toast.makeText(this@HomeActivity, "Logged out", Toast.LENGTH_SHORT).show()
 
                     // Go back to the main page
@@ -98,10 +87,21 @@ class HomeActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
 
+                @RequiresApi(Build.VERSION_CODES.O)
                 override fun onFailure(error: AuthenticationException) {
-                    moveTaskToBack(true);
-                    exitProcess(-1)
+                    // Vibrate ethe device
+                    val v = getSystemService(VIBRATOR_SERVICE) as Vibrator
+                    if (v.hasVibrator()) {
+                        val vEffect: VibrationEffect = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
+                        v.cancel()
+                        v.vibrate(vEffect)
+                    }
+
                     Toast.makeText(this@HomeActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
+
+                    // Exit the Application
+                    moveTaskToBack(true)
+                    exitProcess(-1)
                 }
             })
     }
