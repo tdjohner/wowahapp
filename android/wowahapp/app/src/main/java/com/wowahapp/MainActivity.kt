@@ -76,7 +76,6 @@ class MainActivity : AppCompatActivity() {
 
     // Validate user using Auth0 service
     private fun sendLoginRequest() {
-
         WebAuthProvider.login(account)
                 .withScheme(getString(R.string.com_auth0_scheme))
                 .withScope("openid profile email")
