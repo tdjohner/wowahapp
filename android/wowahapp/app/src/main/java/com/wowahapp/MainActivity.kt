@@ -36,9 +36,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Initialize vibration
-        val v = getSystemService(VIBRATOR_SERVICE) as Vibrator
-
         // Initialize the account settings
         account = Auth0(
                 getString(R.string.com_auth0_clientId),
@@ -73,11 +70,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         scrollingBackground()
-        if (v.hasVibrator()) {
-            val vEffect: VibrationEffect = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
-            v.cancel()
-            v.vibrate(vEffect)
-        }
         //sendJson sends a json object to our backend
         //sendJson()
     }
@@ -90,10 +82,21 @@ class MainActivity : AppCompatActivity() {
                 // Launch the authentication passing the callback where the results will be received
                 .start(this,  object : Callback<Credentials, AuthenticationException> {
                     // Called when there is an authentication failure
+                    @RequiresApi(Build.VERSION_CODES.O)
                     override fun onFailure(error: AuthenticationException) {
-                        moveTaskToBack(true);
-                        exitProcess(-1)
                         Toast.makeText(this@MainActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
+
+                        // Vibrate the device
+                        val v = getSystemService(VIBRATOR_SERVICE) as Vibrator
+                        if (v.hasVibrator()) {
+                            val vEffect: VibrationEffect = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
+                            v.cancel()
+                            v.vibrate(vEffect)
+                        }
+
+                        // Exit the Application
+                        moveTaskToBack(true)
+                        exitProcess(-1)
                     }
 
                     // Called when authentication completed successfully
