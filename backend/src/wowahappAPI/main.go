@@ -9,16 +9,13 @@ https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
 */
 
 import (
-	"crypto/tls"
+	dbh "../databaseHelpers"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
-	"golang.org/x/crypto/acme/autocert"
-	dbh "../databaseHelpers"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
@@ -35,14 +32,6 @@ type Recipe struct {
 
 func handleRequest() {
 
-	//Citation: configuring muxer to work with autocert lib
-	// https://stackoverflow.com/questions/50311532/autocert-using-gorilla-mux
-	// https://blog.cloudflare.com/exposing-go-on-the-internet/
-	manager := &autocert.Manager {
-		Prompt: autocert.AcceptTOS,
-		Cache: autocert.DirCache("/wowahapp/backend/src/wowahappAPI/secret-dir"),
-		HostPolicy: autocert.HostWhitelist("wowahapp.com", "w"),
-	}
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", landingPage)
@@ -52,20 +41,9 @@ func handleRequest() {
 	router.HandleFunc("/itemlisting/{itemName}/{realmID}", getItemListing)
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
 	router.HandleFunc("/createuser/", createUser).Methods("POST")
+	router.HandleFunc("/recipebasecost/{recipeName}/{realmID}", getRecipeBaseCost)
 
-
-	server := &http.Server {
-		Addr:	":https",
-		Handler: router,
-		ReadTimeout: 4 * time.Second,
-		WriteTimeout: 8 * time.Second,
-		IdleTimeout: 64 * time.Second,
-		TLSConfig: &tls.Config {
-			GetCertificate: manager.GetCertificate,
-			PreferServerCipherSuites: true,
-		},
-	}
-	log.Fatal(server.ListenAndServeTLS("", ""))
+	log.Fatal(http.ListenAndServe(":49155", router))
 }
 
 func landingPage(res http.ResponseWriter, req *http.Request) {
@@ -162,6 +140,19 @@ func getExpansions(res http.ResponseWriter, req *http.Request) {
 	defer db.Close()
 	expacs := dbh.GetAllExpacs(db)
 	json.NewEncoder(res).Encode(expacs)
+}
+
+func getRecipeBaseCost(res http.ResponseWriter, req *http.Request) {
+
+	vars := mux.Vars(req)
+
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
+	defer db.Close()
+
+	dbh.RecipeBaseCost(db, vars["recipeName"], vars["realmID"])
 }
 
  

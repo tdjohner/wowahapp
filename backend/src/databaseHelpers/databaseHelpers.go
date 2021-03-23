@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 )
 
 type WebConfig struct {
@@ -35,6 +36,18 @@ type AuctionSlice struct {
 	Name string `db:name`
 	UnitPrice int `db:unitPrice`
 	Buyout int `db:buyout`
+}
+
+type ReagentItem struct {
+	Name string `db:name`
+	Quantity int `db:quantity`
+	Cost int `db:cost`
+	Available int `db:available`
+}
+
+type ReagentListing struct {
+	quantity int
+	cost int
 }
 
 //Get the connection string from our config
@@ -130,4 +143,74 @@ func GetAllExpacs(db *sql.DB) []string {
 		expacs = append(expacs, p)
 	}
 	return expacs
+}
+
+//returns -1 if there are not enough of a type of reagent to craft the recipe
+func RecipeBaseCost(db *sql.DB, name string, realm string) int {
+
+	reagents := make(map[string][]ReagentItem)
+	cost := 0
+
+	q := fmt.Sprintf("select rgt.name, rgt.quantity, auct.unitPrice + auct.buyout as cost, auct.quantity as available " +
+		"from tbl_recipes rp " +
+		"join tbl_reagents rgt on rgt.recipeID = rp.id " +
+		"join tbl_auctions_current auct on auct.itemID = rgt.reagentItemID " +
+		"where rp.name = \"%s\" and cnctdRealmID = %s;",name, realm)
+
+	rows, err := db.Query(q)
+	if nil != err {
+		fmt.Println("Error recipe base cost from database: ", err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var reagent ReagentItem
+		_ = rows.Scan(&reagent.Name, &reagent.Quantity, &reagent.Cost, &reagent.Available)
+		fmt.Println("reagent")
+		reagents[reagent.Name] = append(reagents[reagent.Name], reagent)
+	}
+	if len(reagents) == 0 {
+		return -1 //no reagents for the recipe posted
+	}
+	//for each reagent
+	for key := range reagents {
+		//sort lowest cost
+		sort.Slice(reagents[key][:], func(i, j int) bool {
+			return reagents[key][i].Cost < reagents[key][j].Cost
+		}) //citation for sorting slices: https://stackoverflow.com/questions/28999735/what-is-the-shortest-way-to-simply-sort-an-array-of-structs-by-arbitrary-field
+
+		//get the number of reagents required, at the cheapest listing
+		required := reagents[key][0].Quantity
+		 r, x  := 0, 0
+		for r < required && x < len(reagents[key])  {
+			if reagents[key][x].Available > 0 {
+				cost = cost + reagents[key][x].Cost
+				reagents[key][x].Available = reagents[key][x].Available - 1
+				r = r + 1
+				fmt.Println(cost)
+			} else {
+				x=x+1
+				continue
+			}
+
+		}
+		if r < required {
+			return -1 //bail if we have insufficient reagent values
+		}
+	}
+	return cost
+}
+
+
+
+//returns true if item exists and false if it does not
+func exists(item string, list []string) bool {
+	for _, i := range list {
+		if (i != item) {
+			continue
+		} else {
+			return true
+		}
+	}
+	return false
 }
