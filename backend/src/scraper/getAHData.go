@@ -32,7 +32,7 @@ var newAuctionTableQuery = "CREATE TABLE tbl_auctions_current (" +
 	"timeLeft VARCHAR(16))"
 
 func main() {
-	scrapeRecipes()
+	//scrapeRecipes()
 	supportedRealms := getSupportedRealms()
 	connectionString := dbh.GetConnectionString()
 	accessToken := getAccessToken()
@@ -351,7 +351,7 @@ func scrapeRecipes() {
 	defer db.Close()
 
 	//Possibly does not need to be as high as 100k. No recipes exist lower than 1800.
-	for i := 24164; i < 100000; i++ {
+	for i := 1800; i < 100000; i++ {
 		var Recipe Recipes
 		Recipe, err := PullRecipe(i, access_token)
 		//Check if 404, no recipe for i
@@ -371,8 +371,8 @@ func scrapeRecipes() {
 		//Now insert into reagent table.
 		//Can add reagentitemid if needed.
 		for i := 0; i < len(Recipe.Reagents); i++ {
-			reagentQuery, err := db.Query("INSERT INTO tbl_reagents(recipeID,name,category,quantity) VALUES (?,?,?,?)",
-				Recipe.ID, Recipe.Reagents[i].Reagent.Name, "none", Recipe.Reagents[i].Quantity)
+			reagentQuery, err := db.Query("INSERT INTO tbl_reagents(recipeID,name,category,quantity, reagentItemID) VALUES (?,?,?,?,?)",
+				Recipe.ID, Recipe.Reagents[i].Reagent.Name, "none", Recipe.Reagents[i].Quantity, Recipe.Reagents[i].Reagent.ID)
 
 			reagentQuery.Close()
 			if nil != err {
