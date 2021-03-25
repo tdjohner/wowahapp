@@ -56,36 +56,3 @@ class CustomAdapter(private val data: List<RecipeModel>) :
     }
 
 }
-/*
-internal class CustomAdapter(private var itemsList: MutableList<RecipeModel>) :
-    RecyclerView.Adapter<CustomAdapter.MyViewHolder>() {
-        internal inner class MyViewHolder(view: View) : RecyclerView.ViewHolder(view){
-            var recipeName: TextView = view.findViewById(R.id.recipeName)
-            var averageSalePrice: TextView = view.findViewById(R.id.averageSalePrice)
-            var salePrice: TextView = view.findViewById(R.id.salePrice)
-            var link: TextView = view.findViewById(R.id.link)
-            val removeButton: Button = view.findViewById<Button>(R.id.removeItem)
-        }
-    @NonNull
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val itemView = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item, parent, false)
-        return MyViewHolder(itemView)
-    }
-    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val item = itemsList[position]
-        holder.recipeName.text = item.getRecipeName()
-        holder.averageSalePrice.text = item.getAverageSalePrice()
-        holder.salePrice.text = item.getSalePrice()
-        holder.link.text = item.getLink()
-    }
-    override fun getItemCount(): Int {
-        return itemsList.size
-    }
-
-    fun removeItem(index: Int){
-        itemsList.removeAt(index)
-        notifyDataSetChanged()
-    }
-
-}*/

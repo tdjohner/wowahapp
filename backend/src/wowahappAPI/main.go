@@ -9,6 +9,7 @@ https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
 */
 
 import (
+	dbh "../databaseHelpers"
 	"crypto/tls"
 	"database/sql"
 	"encoding/json"
@@ -16,9 +17,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
 	"golang.org/x/crypto/acme/autocert"
-	dbh "../databaseHelpers"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
@@ -52,7 +52,7 @@ func handleRequest() {
 	router.HandleFunc("/itemlisting/{itemName}/{realmID}", getItemListing)
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
 	router.HandleFunc("/createuser/", createUser).Methods("POST")
-
+	router.HandleFunc("/recipebasecost/{recipeName}/{realmID}", getRecipeBaseCost)
 
 	server := &http.Server {
 		Addr:	":https",
@@ -162,6 +162,21 @@ func getExpansions(res http.ResponseWriter, req *http.Request) {
 	defer db.Close()
 	expacs := dbh.GetAllExpacs(db)
 	json.NewEncoder(res).Encode(expacs)
+}
+
+func getRecipeBaseCost(res http.ResponseWriter, req *http.Request) {
+
+	vars := mux.Vars(req)
+
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
+	defer db.Close()
+
+	cost := dbh.RecipeBaseCost(db, vars["recipeName"], vars["realmID"])
+	convertedCost := float64(cost)/10000
+	json.NewEncoder(res).Encode(convertedCost)
 }
 
  

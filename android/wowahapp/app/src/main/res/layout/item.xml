@@ -2,22 +2,25 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    android:background="#505050">
+    android:layout_marginTop="4dp"
+    android:layout_marginLeft="4dp"
+    android:layout_marginRight="4dp"
+    android:background="@drawable/textviewhighlight">
     <TextView
         android:id="@+id/recipeName"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="40dp"
+        android:paddingLeft="2dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:textColor="#F040f0"
+        android:textColor="#FFFFFF"
         android:textSize="20sp" />
     <TextView
         android:id="@+id/averageSalePrice"
         android:layout_width="match_parent"
         android:layout_height="25dp"
         android:layout_alignParentEnd="true"
-        android:textColor="#F040f0"
+        android:textColor="#FFFFFF"
         android:gravity="end"
         android:textSize="20sp" />
     <TextView
@@ -26,7 +29,7 @@
         android:layout_height="25dp"
         android:layout_alignParentStart="true"
         android:layout_below="@id/averageSalePrice"
-        android:textColor="#F040f0"
+        android:textColor="#FFFFFF"
         android:gravity="end"
         android:textSize="20sp" />
     <TextView
@@ -40,9 +43,11 @@
         android:textSize="20sp" />
     <Button
         android:id="@+id/removeItem"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
-        android:gravity="start"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
         android:layout_below="@id/recipeName"
-        android:background="#F00000" />
- </RelativeLayout>
+        android:layout_marginTop="20dp"
+        android:background="#F00000"
+        android:gravity="start" />
+
+</RelativeLayout>

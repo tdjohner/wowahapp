@@ -1,5 +1,6 @@
 package com.wowahapp
 
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.*
@@ -22,11 +23,11 @@ import kotlin.coroutines.suspendCoroutine
 class AddRecipeActivity : AppCompatActivity() {
 
     lateinit var searchTextView : TextView
+    lateinit var netSum : TextView
     lateinit var professionSpinner : Spinner
     lateinit var expansionSpinner : Spinner
     lateinit var recipeRecycler : RecyclerView
     private lateinit var recipeAdapter : CustomAdapter
-    private val recipeNames = ArrayList<String>()
     private val recipeList = ArrayList<RecipeModel>()
 
 
@@ -51,19 +52,32 @@ class AddRecipeActivity : AppCompatActivity() {
                 // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
                 for (r in response) {
                     var model = RecipeModel(r, "x", "x", "note")
-                    auctionDataService.getItemListing(r, "76", applicationContext, object : AuctionDataService.VolleyResponseListener {
+                    auctionDataService.getItemListing(r, realmID, applicationContext, object : AuctionDataService.VolleyResponseListener {
                         override fun onResponse(response: String) {
-                            //Toast.makeText(applicationContext, response, Toast.LENGTH_SHORT)
-                            model.setSalePrice(response)
+                            val saleprice = response
+                            model.setAverageSalePrice(saleprice)
+                            auctionDataService.getRecipeBaseCost(r, realmID, applicationContext, object : AuctionDataService.VolleyResponseListener {
+                                override fun onResponse(response: String) {
+                                    val cost = response.toDouble()
+                                    val sum: String
+                                    if (cost.toFloat() > 0) { // only show recipes that can be filled on AH
+                                        sum = calculateExchange(saleprice.toDouble(), cost)
+                                        model.setSalePrice(String.format("%.2f", cost))
+                                        model.setLink(sum)
+                                        recipeAdapter.addItem(model)
+                                    }
+                                }
+                                override fun onError(error: String) {
+                                    println("Error getting base recipe cost: " + error)
+                                }
+                            })
                         }
                         override fun onError(error: String) {
                             println("Error getting price listing data: " + error)
                         }
                     })
-                    recipeAdapter.addItem(model)
                 }
             }
-
             override fun onError(error: String) {
                 println("Error in getAllRecipes: " + error)
             }
@@ -86,15 +100,13 @@ class AddRecipeActivity : AppCompatActivity() {
                 println("Error in getAllExpansions :" + error)
             }
         })
-        /* Here we create the recipeModels and add them to the Adapter
-        for (i in 0 until recipeNames.size) {
-            //first we get the lowest current AH price of the item, if available
-            val recipeModel = RecipeModel(recipeNames[i], "0.00", "0.00", "some note")
-            recipeAdapter.addItem(recipeModel)
-            //getItemPriceAH(recipeNames[i])
-        }
+    }
 
-         */
+    fun calculateExchange(rtrns: Double, cost: Double): String {
+        val c = cost.toDouble()
+        val r = rtrns.toDouble()
+        var net = r - c
+        return String.format("%.2f", net)
     }
 }
 
