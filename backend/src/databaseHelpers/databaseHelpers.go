@@ -166,7 +166,6 @@ func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 	for rows.Next() {
 		var reagent ReagentItem
 		_ = rows.Scan(&reagent.Name, &reagent.Quantity, &reagent.Cost, &reagent.Available)
-		fmt.Println("reagent")
 		reagents[reagent.Name] = append(reagents[reagent.Name], reagent)
 	}
 	if len(reagents) == 0 {
@@ -186,31 +185,15 @@ func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 			if reagents[key][x].Available > 0 {
 				cost = cost + reagents[key][x].Cost
 				reagents[key][x].Available = reagents[key][x].Available - 1
-				r = r + 1
-				fmt.Println(cost)
+				r = r + 1 // reagent "consumed", next reagent in listing.
 			} else {
-				x=x+1
+				x = x + 1 // auction listing exhausted, next auction listing.
 				continue
 			}
-
 		}
 		if r < required {
-			return -1 //bail if we have insufficient reagent values
+			return -10000 //bail if we have insufficient reagent values
 		}
 	}
 	return cost
-}
-
-
-
-//returns true if item exists and false if it does not
-func exists(item string, list []string) bool {
-	for _, i := range list {
-		if (i != item) {
-			continue
-		} else {
-			return true
-		}
-	}
-	return false
 }

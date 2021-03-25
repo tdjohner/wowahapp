@@ -41,7 +41,6 @@
         android:textColor="#F040f0"
         android:gravity="end"
         android:textSize="20sp" />
-
     <Button
         android:id="@+id/removeItem"
         android:layout_width="15dp"
@@ -50,4 +49,5 @@
         android:layout_marginTop="20dp"
         android:background="#F00000"
         android:gravity="start" />
+
 </RelativeLayout>

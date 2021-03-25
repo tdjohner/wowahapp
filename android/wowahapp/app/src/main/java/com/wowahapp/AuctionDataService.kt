@@ -5,7 +5,9 @@ import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.StringRequest
 import org.json.JSONException
+import java.lang.Exception
 
 
 class AuctionDataService {
@@ -93,5 +95,20 @@ class AuctionDataService {
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 
+    fun getRecipeBaseCost(recipeName: String, realmID: String, applicationContext: Context, responseListener: VolleyResponseListener) {
+        val url = "http://192.168.0.24:49155/recipebasecost/"+recipeName.replace(" ", "%20")+"/"+realmID
+
+        for (i in 0 until 10) {
+            println(url)
+        }
+
+        val request = StringRequest(Request.Method.GET, url, Response.Listener<String> { response -> try {
+            responseListener.onResponse(response)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        }, Response.ErrorListener { error -> error.printStackTrace() })
+        VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
+    }
 
 }

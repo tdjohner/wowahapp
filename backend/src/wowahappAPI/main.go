@@ -10,12 +10,15 @@ https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
 
 import (
 	dbh "../databaseHelpers"
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"golang.org/x/crypto/acme/autocert"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
@@ -32,6 +35,14 @@ type Recipe struct {
 
 func handleRequest() {
 
+	//Citation: configuring muxer to work with autocert lib
+	// https://stackoverflow.com/questions/50311532/autocert-using-gorilla-mux
+	// https://blog.cloudflare.com/exposing-go-on-the-internet/
+	manager := &autocert.Manager {
+		Prompt: autocert.AcceptTOS,
+		Cache: autocert.DirCache("/wowahapp/backend/src/wowahappAPI/secret-dir"),
+		HostPolicy: autocert.HostWhitelist("wowahapp.com", "w"),
+	}
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", landingPage)
@@ -43,7 +54,18 @@ func handleRequest() {
 	router.HandleFunc("/createuser/", createUser).Methods("POST")
 	router.HandleFunc("/recipebasecost/{recipeName}/{realmID}", getRecipeBaseCost)
 
-	log.Fatal(http.ListenAndServe(":49155", router))
+	server := &http.Server {
+		Addr:	":https",
+		Handler: router,
+		ReadTimeout: 4 * time.Second,
+		WriteTimeout: 8 * time.Second,
+		IdleTimeout: 64 * time.Second,
+		TLSConfig: &tls.Config {
+			GetCertificate: manager.GetCertificate,
+			PreferServerCipherSuites: true,
+		},
+	}
+	log.Fatal(server.ListenAndServeTLS("", ""))
 }
 
 func landingPage(res http.ResponseWriter, req *http.Request) {
@@ -152,7 +174,9 @@ func getRecipeBaseCost(res http.ResponseWriter, req *http.Request) {
 	}
 	defer db.Close()
 
-	dbh.RecipeBaseCost(db, vars["recipeName"], vars["realmID"])
+	cost := dbh.RecipeBaseCost(db, vars["recipeName"], vars["realmID"])
+	convertedCost := float64(cost)/10000
+	json.NewEncoder(res).Encode(convertedCost)
 }
 
  
