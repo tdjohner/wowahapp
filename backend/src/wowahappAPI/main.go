@@ -57,9 +57,9 @@ func handleRequest() {
 	server := &http.Server {
 		Addr:	":https",
 		Handler: router,
-		ReadTimeout: 4 * time.Second,
-		WriteTimeout: 8 * time.Second,
-		IdleTimeout: 64 * time.Second,
+		ReadTimeout: 45 * time.Second,
+		WriteTimeout: 60 * time.Second,
+		IdleTimeout: 120 * time.Second,
 		TLSConfig: &tls.Config {
 			GetCertificate: manager.GetCertificate,
 			PreferServerCipherSuites: true,
@@ -102,6 +102,8 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 	var recipes []Recipe
 	vars := mux.Vars(req)
 
+	fmt.Println("allrecipes endpoint called")
+
 	connectionString := dbh.GetConnectionString()
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
@@ -109,7 +111,9 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 	}
 	defer db.Close()
 
-	result, err := db.Query("SELECT rcp.id, rcp.name FROM tbl_recipes rcp join tbl_item itm on rcp.name = itm.name join tbl_auctions_current auct on auct.itemID = itm.id where auct.cnctdRealmID = " +vars["realmID"] + ";")
+	q := "SELECT distinct rcp.id, rcp.name FROM tbl_recipes rcp join tbl_item itm on rcp.name = itm.name join tbl_auctions_current auct on auct.itemID = itm.id where auct.cnctdRealmID = " +vars["realmID"] + ";"
+	fmt.Println(q)
+	result, err := db.Query(q)
 	if err != nil {
 		fmt.Println("Error writing to database: " + err.Error())
 	} else {
