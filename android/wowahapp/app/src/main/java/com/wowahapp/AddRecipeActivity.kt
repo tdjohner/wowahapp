@@ -3,6 +3,9 @@ package com.wowahapp
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import android.view.ViewParent
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,7 +29,8 @@ class AddRecipeActivity : AppCompatActivity() {
     lateinit var professionSpinner : Spinner
     lateinit var serverSelectSpinner : Spinner
     lateinit var recipeRecycler : RecyclerView
-    private lateinit var recipeAdapter : CustomAdapter
+    lateinit var confirmButton : Button
+    private lateinit var recipeAdapter : CustomAdapterShopping
     private val recipeList = ArrayList<RecipeModel>()
 
 
@@ -39,10 +43,12 @@ class AddRecipeActivity : AppCompatActivity() {
         searchTextView = findViewById<TextView>(R.id.searchTextView) as TextView
         professionSpinner = findViewById<Spinner>(R.id.professionSelectSpinner) as Spinner
         serverSelectSpinner = findViewById<Spinner>(R.id.serverSelectSpinner) as Spinner
+        confirmButton = findViewById<Button>(R.id.confirmButton) as Button
         recipeRecycler = findViewById(R.id.recipeRecycler)
-        recipeAdapter = CustomAdapter(this.recipeList)
-        recipeRecycler.adapter = recipeAdapter
         recipeRecycler.layoutManager = LinearLayoutManager(applicationContext)
+        recipeAdapter = CustomAdapterShopping(recipeList)
+        recipeRecycler.adapter = recipeAdapter
+
 
         val realmID = "76"
 
@@ -100,6 +106,17 @@ class AddRecipeActivity : AppCompatActivity() {
             }
         })
 
+        confirmButton.setOnClickListener {
+            for (r in recipeAdapter.getRecipeList()) {
+                println(r.getIsSelected())
+                if (r.getIsSelected() == true) {
+                    // Subscribe user to recipe
+
+                   // Toast.makeText(applicationContext, r.getRecipeName(), Toast.LENGTH_SHORT).show()
+                }
+            }
+            // return to HomeActivity
+        }
 
     }
 

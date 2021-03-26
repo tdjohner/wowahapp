@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    android:layout_marginLeft="4dp"
+    android:layout_marginRight="4dp"
+    android:background="@drawable/textviewhighlight">
+    <TextView
+        android:id="@+id/recipeName"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp" />
+    <TextView
+        android:id="@+id/averageSalePrice"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/recipeName"
+        android:textColor="#FFFFFF"
+        android:gravity="end"
+        android:textSize="20sp" />
+    <TextView
+        android:id="@+id/salePrice"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/averageSalePrice"
+        android:textColor="#FFFFFF"
+        android:gravity="end"
+        android:textSize="20sp" />
+    <TextView
+        android:id="@+id/link"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/salePrice"
+        android:layout_marginBottom="2dp"
+        android:textColor="#F040f0"
+        android:gravity="end"
+        android:textSize="20sp" />
+    <CheckBox
+        android:id="@+id/toggleItem"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:gravity="start"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"/>
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/itemImage"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginStart="2dp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/recipeName"/>
+
+</RelativeLayout>
