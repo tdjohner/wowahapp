@@ -10,7 +10,6 @@
         android:id="@+id/recipeName"
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:paddingLeft="2dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:textColor="#FFFFFF"
@@ -39,19 +38,27 @@
         android:layout_height="25dp"
         android:layout_alignParentStart="true"
         android:layout_below="@id/salePrice"
+        android:layout_marginBottom="2dp"
         android:textColor="#F040f0"
         android:gravity="end"
-        android:textSize="20sp"
-        android:paddingBottom="2dp"/>
+        android:textSize="20sp" />
     <Button
         android:id="@+id/removeItem"
         android:layout_width="15dp"
         android:layout_height="15dp"
-        android:paddingLeft="2dp"
-        android:paddingBottom="2dp"
-        android:layout_below="@id/salePrice"
-        android:background="#F00000"
+        android:background="#900000"
         android:gravity="start"
-        android:layout_alignParentBottom="true"/>
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="2dp"
+        android:layout_marginBottom="20dp"/>
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/itemImage"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginStart="2dp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/recipeName"/>
 
 </RelativeLayout>

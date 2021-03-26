@@ -1,15 +1,19 @@
 package com.wowahapp
 
-class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: String?, link: String?){
+class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: String?, link: String?, imageLink: String?){
     private var recipeName: String
     private var averageSalePrice: String
     private var salePrice: String
     private var link: String
+    private var isSelected: Boolean
+    private var imageLink: String
     init{
         this.recipeName = recipeName!!
         this.averageSalePrice = averageSalePrice!!
         this.salePrice = salePrice!!
         this.link = link!!
+        this.isSelected = false
+        this.imageLink = imageLink!!
     }
 
     fun getRecipeName(): String?{
@@ -35,5 +39,17 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
     }
     fun setLink(link: String?){
         this.link = link!!
+    }
+    fun getIsSelected(): Boolean?{
+        return isSelected
+    }
+    fun setIsSelected(link: Boolean?){
+        this.isSelected = link!!
+    }
+    fun getImageLink(): String?{
+        return imageLink
+    }
+    fun setImageLink(imageLink: String?){
+        this.imageLink = imageLink!!
     }
 }

@@ -4,9 +4,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+
 
 class CustomAdapter(private val data: List<RecipeModel>) :
     RecyclerView.Adapter<CustomAdapter.MyViewHolder>() {
@@ -18,11 +21,14 @@ class CustomAdapter(private val data: List<RecipeModel>) :
             val salePrice = view.findViewById<TextView>(R.id.salePrice)
             val link = view.findViewById<TextView>(R.id.link)
             val removeButton = view.findViewById<Button>(R.id.removeItem)
+            val itemImage = view.findViewById<ImageView>(R.id.itemImage)
             recipeName.text = recipe.getRecipeName()
             averageSalePrice.text = recipe.getAverageSalePrice()
             salePrice.text=recipe.getSalePrice()
             link.text=recipe.getLink()
-
+            Glide.with(view)
+                .load(recipe.getImageLink())
+                .into(itemImage)
             removeButton.setOnClickListener{removeItem(index)}
         }
 
