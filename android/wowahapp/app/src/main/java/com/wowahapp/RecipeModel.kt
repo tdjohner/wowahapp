@@ -54,8 +54,4 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
     fun setImageLink(imageLink: String?){
         this.imageLink = imageLink!!
     }
-
-    fun getToggleButtonStatus() {
-
-    }
 }
