@@ -1,13 +1,13 @@
 package com.wowahapp
 
 import android.content.Context
+import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import org.json.JSONException
-import java.lang.Exception
 
 
 class AuctionDataService {
@@ -37,6 +37,13 @@ class AuctionDataService {
             }
             },
             Response.ErrorListener { error -> error.printStackTrace() })
+        request.setRetryPolicy(
+            DefaultRetryPolicy(
+                1000000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+            )
+        )
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 
@@ -96,8 +103,8 @@ class AuctionDataService {
     }
 
     fun getRecipeBaseCost(recipeName: String, realmID: String, applicationContext: Context, responseListener: VolleyResponseListener) {
-        val url = "http://192.168.0.24:49155/recipebasecost/"+recipeName.replace(" ", "%20")+"/"+realmID
-
+        val url = "https://wowahapp.com/recipebasecost/"+recipeName.replace(" ", "%20")+"/"+realmID
+        println(url)
         for (i in 0 until 10) {
             println(url)
         }
