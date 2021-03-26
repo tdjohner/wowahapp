@@ -50,7 +50,7 @@ class AddRecipeActivity : AppCompatActivity() {
             override fun onResponse(response: ArrayList<String>) {
                 // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
                 for (r in response) {
-                    var model = RecipeModel(r, "x", "x", "note")
+                    var model = RecipeModel(r, "x", "x", "note","x")
                     auctionDataService.getItemListing(r, realmID, applicationContext, object : AuctionDataService.VolleyResponseListener {
                         override fun onResponse(response: String) {
                             val saleprice = response
