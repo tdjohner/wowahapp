@@ -10,18 +10,14 @@ https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
 
 import (
 	dbh "../databaseHelpers"
-	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"golang.org/x/crypto/acme/autocert"
-	"time"
-
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -35,15 +31,6 @@ type Recipe struct {
 
 func handleRequest() {
 
-	//Citation: configuring muxer to work with autocert lib
-	// https://stackoverflow.com/questions/50311532/autocert-using-gorilla-mux
-	// https://blog.cloudflare.com/exposing-go-on-the-internet/
-	manager := &autocert.Manager {
-		Prompt: autocert.AcceptTOS,
-		Cache: autocert.DirCache("/wowahapp/backend/src/wowahappAPI/secret-dir"),
-		HostPolicy: autocert.HostWhitelist("wowahapp.com", "w"),
-	}
-
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", landingPage)
 	router.HandleFunc("/allrecipes/{realmID}", getAllRecipes)
@@ -53,19 +40,9 @@ func handleRequest() {
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
 	router.HandleFunc("/createuser/", createUser).Methods("POST")
 	router.HandleFunc("/recipebasecost/{recipeName}/{realmID}", getRecipeBaseCost)
+	router.HandleFunc("/allservers/", getServers)
 
-	server := &http.Server {
-		Addr:	":https",
-		Handler: router,
-		ReadTimeout: 45 * time.Second,
-		WriteTimeout: 60 * time.Second,
-		IdleTimeout: 120 * time.Second,
-		TLSConfig: &tls.Config {
-			GetCertificate: manager.GetCertificate,
-			PreferServerCipherSuites: true,
-		},
-	}
-	log.Fatal(server.ListenAndServeTLS("", ""))
+	log.Fatal(http.ListenAndServe(":49155", router))
 }
 
 func landingPage(res http.ResponseWriter, req *http.Request) {
@@ -166,6 +143,17 @@ func getExpansions(res http.ResponseWriter, req *http.Request) {
 	defer db.Close()
 	expacs := dbh.GetAllExpacs(db)
 	json.NewEncoder(res).Encode(expacs)
+}
+
+func getServers(res http.ResponseWriter, req *http.Request) {
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
+	defer db.Close()
+	servers := dbh.GetSupportedServers(db)
+	json.NewEncoder(res).Encode(servers)
+
 }
 
 func getRecipeBaseCost(res http.ResponseWriter, req *http.Request) {

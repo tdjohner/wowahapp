@@ -23,9 +23,8 @@ import kotlin.coroutines.suspendCoroutine
 class AddRecipeActivity : AppCompatActivity() {
 
     lateinit var searchTextView : TextView
-    lateinit var netSum : TextView
     lateinit var professionSpinner : Spinner
-    lateinit var expansionSpinner : Spinner
+    lateinit var serverSelectSpinner : Spinner
     lateinit var recipeRecycler : RecyclerView
     private lateinit var recipeAdapter : CustomAdapter
     private val recipeList = ArrayList<RecipeModel>()
@@ -39,7 +38,7 @@ class AddRecipeActivity : AppCompatActivity() {
 
         searchTextView = findViewById<TextView>(R.id.searchTextView) as TextView
         professionSpinner = findViewById<Spinner>(R.id.professionSelectSpinner) as Spinner
-        expansionSpinner = findViewById<Spinner>(R.id.expansionSelectSpinner) as Spinner
+        serverSelectSpinner = findViewById<Spinner>(R.id.serverSelectSpinner) as Spinner
         recipeRecycler = findViewById(R.id.recipeRecycler)
         recipeAdapter = CustomAdapter(this.recipeList)
         recipeRecycler.adapter = recipeAdapter
@@ -92,14 +91,16 @@ class AddRecipeActivity : AppCompatActivity() {
             }
         })
 
-        auctionDataService.getAllExpansions(applicationContext, object : AuctionDataService.ArrayListListener {
+        auctionDataService.getAllServers(applicationContext, object : AuctionDataService.ArrayListListener {
             override fun onResponse(response: ArrayList<String>) {
-                expansionSpinner.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response)
+                serverSelectSpinner.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response)
             }
             override fun onError(error: String) {
                 println("Error in getAllExpansions :" + error)
             }
         })
+
+
     }
 
     fun calculateExchange(rtrns: Double, cost: Double): String {

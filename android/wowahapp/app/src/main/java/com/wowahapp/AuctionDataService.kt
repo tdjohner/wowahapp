@@ -89,7 +89,7 @@ class AuctionDataService {
 
     fun getAllExpansions(applicationContext: Context, responseListener: ArrayListListener) {
         val url = "https://wowahapp.com/allexpansions"
-        val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response ->try {
+        val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response -> try {
             var expArray : ArrayList<String> = ArrayList<String>()
             for (i in 0 until response.length()) {
                 expArray.add(response.getString(i))
@@ -102,12 +102,23 @@ class AuctionDataService {
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 
+    fun getAllServers(applicationContext: Context, responseListener: ArrayListListener) {
+        val url = "http://192.168.0.24:49155/allservers"
+        val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response -> try {
+            var servArray : ArrayList<String> = ArrayList<String>()
+            for (i in 0 until response.length()) {
+                servArray.add(response.getString(i))
+            }
+            responseListener.onResponse(servArray)
+        } catch (e: JSONException ) {
+            e.printStackTrace()
+        }
+        }, Response.ErrorListener { error -> error.printStackTrace() })
+        VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
+    }
+
     fun getRecipeBaseCost(recipeName: String, realmID: String, applicationContext: Context, responseListener: VolleyResponseListener) {
         val url = "https://wowahapp.com/recipebasecost/"+recipeName.replace(" ", "%20")+"/"+realmID
-        println(url)
-        for (i in 0 until 10) {
-            println(url)
-        }
 
         val request = StringRequest(Request.Method.GET, url, Response.Listener<String> { response -> try {
             responseListener.onResponse(response)
