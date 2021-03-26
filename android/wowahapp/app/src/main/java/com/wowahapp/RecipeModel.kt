@@ -1,5 +1,7 @@
 package com.wowahapp
 
+import android.widget.CheckBox
+
 class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: String?, link: String?, imageLink: String?){
     private var recipeName: String
     private var averageSalePrice: String

@@ -3,6 +3,9 @@ package com.wowahapp
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import android.view.ViewParent
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -23,11 +26,11 @@ import kotlin.coroutines.suspendCoroutine
 class AddRecipeActivity : AppCompatActivity() {
 
     lateinit var searchTextView : TextView
-    lateinit var netSum : TextView
     lateinit var professionSpinner : Spinner
-    lateinit var expansionSpinner : Spinner
+    lateinit var serverSelectSpinner : Spinner
     lateinit var recipeRecycler : RecyclerView
-    private lateinit var recipeAdapter : CustomAdapter
+    lateinit var confirmButton : Button
+    private lateinit var recipeAdapter : CustomAdapterShopping
     private val recipeList = ArrayList<RecipeModel>()
 
 
@@ -39,11 +42,13 @@ class AddRecipeActivity : AppCompatActivity() {
 
         searchTextView = findViewById<TextView>(R.id.searchTextView) as TextView
         professionSpinner = findViewById<Spinner>(R.id.professionSelectSpinner) as Spinner
-        expansionSpinner = findViewById<Spinner>(R.id.expansionSelectSpinner) as Spinner
+        serverSelectSpinner = findViewById<Spinner>(R.id.serverSelectSpinner) as Spinner
+        confirmButton = findViewById<Button>(R.id.confirmButton) as Button
         recipeRecycler = findViewById(R.id.recipeRecycler)
-        recipeAdapter = CustomAdapter(this.recipeList)
-        recipeRecycler.adapter = recipeAdapter
         recipeRecycler.layoutManager = LinearLayoutManager(applicationContext)
+        recipeAdapter = CustomAdapterShopping(recipeList)
+        recipeRecycler.adapter = recipeAdapter
+
 
         val realmID = "76"
 
@@ -92,14 +97,27 @@ class AddRecipeActivity : AppCompatActivity() {
             }
         })
 
-        auctionDataService.getAllExpansions(applicationContext, object : AuctionDataService.ArrayListListener {
+        auctionDataService.getAllServers(applicationContext, object : AuctionDataService.ArrayListListener {
             override fun onResponse(response: ArrayList<String>) {
-                expansionSpinner.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response)
+                serverSelectSpinner.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response)
             }
             override fun onError(error: String) {
                 println("Error in getAllExpansions :" + error)
             }
         })
+
+        confirmButton.setOnClickListener {
+            for (r in recipeAdapter.getRecipeList()) {
+                println(r.getIsSelected())
+                if (r.getIsSelected() == true) {
+                    // Subscribe user to recipe
+
+                   // Toast.makeText(applicationContext, r.getRecipeName(), Toast.LENGTH_SHORT).show()
+                }
+            }
+            // return to HomeActivity
+        }
+
     }
 
     fun calculateExchange(rtrns: Double, cost: Double): String {

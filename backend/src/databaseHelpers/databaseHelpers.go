@@ -145,6 +145,21 @@ func GetAllExpacs(db *sql.DB) []string {
 	return expacs
 }
 
+func GetSupportedServers(db *sql.DB) []string {
+	servers := []string{}
+	q := "SELECT realmName from tbl_connected_realm"
+	rows, err := db.Query(q)
+	if nil != err {
+		fmt.Println("Error retrieving supported servers from the database: ", err.Error())
+	}
+	for rows.Next() {
+		var p string
+		err = rows.Scan(&p)
+		servers = append(servers, p)
+	}
+	return servers
+}
+
 //returns -1 if there are not enough of a type of reagent to craft the recipe
 func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 
