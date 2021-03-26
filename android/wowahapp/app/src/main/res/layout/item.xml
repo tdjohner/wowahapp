@@ -20,6 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="25dp"
         android:layout_alignParentEnd="true"
+        android:layout_below="@id/recipeName"
         android:textColor="#FFFFFF"
         android:gravity="end"
         android:textSize="20sp" />
@@ -40,14 +41,17 @@
         android:layout_below="@id/salePrice"
         android:textColor="#F040f0"
         android:gravity="end"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        android:paddingBottom="2dp"/>
     <Button
         android:id="@+id/removeItem"
         android:layout_width="15dp"
         android:layout_height="15dp"
-        android:layout_below="@id/recipeName"
-        android:layout_marginTop="20dp"
+        android:paddingLeft="2dp"
+        android:paddingBottom="2dp"
+        android:layout_below="@id/salePrice"
         android:background="#F00000"
-        android:gravity="start" />
+        android:gravity="start"
+        android:layout_alignParentBottom="true"/>
 
 </RelativeLayout>
