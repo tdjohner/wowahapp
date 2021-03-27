@@ -1,4 +1,4 @@
-package com.wowahapp
+    package com.wowahapp
 
 import android.content.Intent
 import android.os.Build
@@ -12,12 +12,16 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.toolbox.JsonObjectRequest
 import com.auth0.android.Auth0
 import com.auth0.android.authentication.AuthenticationException
 import com.auth0.android.callback.Callback
 import com.auth0.android.provider.WebAuthProvider
 import com.auth0.android.result.Credentials
 import com.auth0.android.result.UserProfile
+import org.json.JSONObject
 import kotlin.system.exitProcess
 
 class HomeActivity : AppCompatActivity() {
@@ -39,7 +43,6 @@ class HomeActivity : AppCompatActivity() {
             getString(R.string.com_auth0_clientId),
             getString(R.string.com_auth0_domain)
         )
-
         addRecipeButton = findViewById<Button>(R.id.addRecipeButton) as Button
         addRecipeButton.setOnClickListener{
             val addRecipeIntent = Intent(this, AddRecipeActivity::class.java)
@@ -104,5 +107,25 @@ class HomeActivity : AppCompatActivity() {
                     exitProcess(-1)
                 }
             })
+    }
+    private fun sendJsonObject(){
+        val url = "https://wowahapp.com/createuser/"
+        val params = HashMap<String,Int>()
+        //These two parameters are pulled from the UI/ recipe objects.
+        params["itemId"] = 3;
+        params["userId"] = 4;
+
+        val jsonObject = JSONObject(params as Map<*, *>)
+
+        val request = JsonObjectRequest(
+            Request.Method.POST, url, jsonObject,
+            Response.Listener { response ->
+                //Toast.makeText(this@HomeActivity, "Added Recipe Subscription", Toast.LENGTH_SHORT).show()
+            },
+            Response.ErrorListener {
+                    error -> error.printStackTrace()
+            }
+        )
+        VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 }
