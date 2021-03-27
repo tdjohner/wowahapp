@@ -40,7 +40,7 @@ func handleRequest() {
 	router.HandleFunc("/allexpansions/", getExpansions)
 	router.HandleFunc("/itemlisting/{itemName}/{realmID}", getItemListing)
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
-	router.HandleFunc("/createuser/", createUser).Methods("POST")
+	router.HandleFunc("/createuser/", createSubbedItem).Methods("POST")
 	log.Fatal(http.ListenAndServe(":49155", router))
 }
 
@@ -101,20 +101,30 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 }
 
 // Create database record example
-func createUser(res http.ResponseWriter, req *http.Request) {
+func createSubbedItem(res http.ResponseWriter, req *http.Request) {
 
-	type NewUser struct {
-		Name    string
-		Address string
+	type SubbedItem struct {
+		itemID    int
+		userId 	  int
 	}
 
-	var newUser NewUser
+	var newSubbedItem SubbedItem
 
 	// infers body to byte[] stream
 	body, _ := ioutil.ReadAll(req.Body)
 	fmt.Println(string(body))
-	json.Unmarshal(body, &newUser)
-	fmt.Printf("user: %s, email: %s", newUser.Name, newUser.Address)
+	json.Unmarshal(body, &newSubbedItem)
+	fmt.Printf("itemID: %s, userID: %s", newSubbedItem.itemID, newSubbedItem.userId)
+	//Insert new SubbedItem to tblSubbedItems (Was not able to test this, inserting may not work)
+
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
+	_, err = db.Exec("INSERT INTO tblSubbedItems(itemId,userId) VALUES (?,?)", newSubbedItem.userId, newSubbedItem.itemID)
+	//sqlInsert := "INSERT INTO tblSubbedItems(itemId, userId) VALUES ($1, $2)
+	defer db.Close()
+
 }
 
 func getProfessions(res http.ResponseWriter, req *http.Request) {
