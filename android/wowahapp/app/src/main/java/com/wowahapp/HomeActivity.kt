@@ -108,19 +108,21 @@ class HomeActivity : AppCompatActivity() {
                 }
             })
     }
-    private fun sendJsonObject(){
+
+    private fun sendJsonObject(userToken: Int, recipeName: String, realmName: String ){
         val url = "https://wowahapp.com/createuser/"
-        val params = HashMap<String,Int>()
+        val params = HashMap<String,String>()
         //These two parameters are pulled from the UI/ recipe objects.
-        params["itemId"] = 3;
-        params["userId"] = 4;
+        params["reicpeName"] = recipeName
+        params["userToken"] = userToken.toString()
+        params["realmName"] = realmName
 
         val jsonObject = JSONObject(params as Map<*, *>)
 
         val request = JsonObjectRequest(
             Request.Method.POST, url, jsonObject,
             Response.Listener { response ->
-                //Toast.makeText(this@HomeActivity, "Added Recipe Subscription", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@HomeActivity, "Recipes added to your Home screen", Toast.LENGTH_SHORT).show()
             },
             Response.ErrorListener {
                     error -> error.printStackTrace()

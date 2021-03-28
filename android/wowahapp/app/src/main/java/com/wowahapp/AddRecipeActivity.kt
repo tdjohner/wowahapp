@@ -4,6 +4,7 @@ import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.view.ViewParent
 import android.widget.*
@@ -30,6 +31,7 @@ class AddRecipeActivity : AppCompatActivity() {
     lateinit var serverSelectSpinner : Spinner
     lateinit var recipeRecycler : RecyclerView
     lateinit var confirmButton : Button
+    lateinit var serverMap : Map<String, Int>
     private lateinit var recipeAdapter : CustomAdapterShopping
     private val recipeList = ArrayList<RecipeModel>()
 
@@ -50,43 +52,54 @@ class AddRecipeActivity : AppCompatActivity() {
         recipeRecycler.adapter = recipeAdapter
 
 
-        val realmID = "76"
 
-        auctionDataService.getAllRecipes(realmID, applicationContext, object : AuctionDataService.ArrayListListener {
-            override fun onResponse(response: ArrayList<String>) {
-                // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
-                for (r in response) {
-                    var model = RecipeModel(r, "x", "x", "note","x")
-                    auctionDataService.getItemListing(r, realmID, applicationContext, object : AuctionDataService.VolleyResponseListener {
-                        override fun onResponse(response: String) {
-                            val saleprice = response
-                            model.setAverageSalePrice(saleprice)
-                            auctionDataService.getRecipeBaseCost(r, realmID, applicationContext, object : AuctionDataService.VolleyResponseListener {
+
+
+        serverSelectSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                var realmID = serverMap[parent?.getItemAtPosition(position)]
+                recipeList.clear()
+                recipeRecycler?.adapter?.notifyDataSetChanged()
+                auctionDataService.getAllRecipes(realmID.toString(), applicationContext, object : AuctionDataService.ArrayListListener {
+                    override fun onResponse(response: ArrayList<String>) {
+                        // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
+                        for (r in response) {
+                            var model = RecipeModel(r, "x", "x", "note","x")
+                            auctionDataService.getItemListing(r, realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
                                 override fun onResponse(response: String) {
-                                    val cost = response.toDouble()
-                                    val sum: String
-                                    if (cost.toFloat() > 0) { // only show recipes that can be filled on AH
-                                        sum = calculateExchange(saleprice.toDouble(), cost)
-                                        model.setSalePrice(String.format("%.2f", cost))
-                                        model.setLink(sum)
-                                        recipeAdapter.addItem(model)
-                                    }
+                                    val saleprice = response
+                                    model.setAverageSalePrice(saleprice)
+                                    auctionDataService.getRecipeBaseCost(r, realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
+                                        override fun onResponse(response: String) {
+                                            val cost = response.toDouble()
+                                            val sum: String
+                                            if (cost.toFloat() > 0) { // only show recipes that can be filled on AH
+                                                sum = calculateExchange(saleprice.toDouble(), cost)
+                                                model.setSalePrice(String.format("%.2f", cost))
+                                                model.setLink(sum)
+                                                recipeAdapter.addItem(model)
+                                            }
+                                        }
+                                        override fun onError(error: String) {
+                                            println("Error getting base recipe cost: " + error)
+                                        }
+                                    })
                                 }
                                 override fun onError(error: String) {
-                                    println("Error getting base recipe cost: " + error)
+                                    println("Error getting price listing data: " + error)
                                 }
                             })
                         }
-                        override fun onError(error: String) {
-                            println("Error getting price listing data: " + error)
-                        }
-                    })
-                }
+                    }
+                    override fun onError(error: String) {
+                        println("Error in getAllRecipes: " + error)
+                    }
+                })
             }
-            override fun onError(error: String) {
-                println("Error in getAllRecipes: " + error)
-            }
-        })
+        }
+
+
 
         auctionDataService.getAllProfessions(applicationContext, object : AuctionDataService.ArrayListListener {
             override fun onResponse(response: ArrayList<String>) {
@@ -97,9 +110,10 @@ class AddRecipeActivity : AppCompatActivity() {
             }
         })
 
-        auctionDataService.getAllServers(applicationContext, object : AuctionDataService.ArrayListListener {
-            override fun onResponse(response: ArrayList<String>) {
-                serverSelectSpinner.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response)
+        auctionDataService.getAllServers(applicationContext, object : AuctionDataService.RealmListListener {
+            override fun onResponse(response: Map<String, Int>) {
+                serverMap = response
+                serverSelectSpinner.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response.keys.toTypedArray())
             }
             override fun onError(error: String) {
                 println("Error in getAllExpansions :" + error)
@@ -108,11 +122,9 @@ class AddRecipeActivity : AppCompatActivity() {
 
         confirmButton.setOnClickListener {
             for (r in recipeAdapter.getRecipeList()) {
-                println(r.getIsSelected())
                 if (r.getIsSelected() == true) {
                     // Subscribe user to recipe
-
-                   // Toast.makeText(applicationContext, r.getRecipeName(), Toast.LENGTH_SHORT).show()
+                    println((application as CustomApplication).getUserName() +" "+r.getRecipeName()+" "+serverMap[serverSelectSpinner.selectedItem])
                 }
             }
             // return to HomeActivity

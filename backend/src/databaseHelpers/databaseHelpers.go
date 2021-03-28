@@ -50,6 +50,11 @@ type ReagentListing struct {
 	cost int
 }
 
+type GameServer struct {
+	CnctdRealmID int `db:cnctdRealmID`
+	RealmName	string `db:realmName`
+}
+
 //Get the connection string from our config
 func GetConnectionString() string {
 	// reading in from web.json from https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
@@ -145,17 +150,17 @@ func GetAllExpacs(db *sql.DB) []string {
 	return expacs
 }
 
-func GetSupportedServers(db *sql.DB) []string {
-	servers := []string{}
-	q := "SELECT realmName from tbl_connected_realm"
+func GetSupportedServers(db *sql.DB) []GameServer {
+	servers := []GameServer{}
+	q := "SELECT cnctdRealmID, realmName from tbl_connected_realm"
 	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error retrieving supported servers from the database: ", err.Error())
 	}
 	for rows.Next() {
-		var p string
-		err = rows.Scan(&p)
-		servers = append(servers, p)
+		var gs GameServer
+		err = rows.Scan(&gs.CnctdRealmID, &gs.RealmName)
+		servers = append(servers, gs)
 	}
 	return servers
 }

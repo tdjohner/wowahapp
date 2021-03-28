@@ -110,8 +110,9 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 func createSubbedItem(res http.ResponseWriter, req *http.Request) {
 
 	type SubbedItem struct {
-		itemID    int
-		userId 	  int
+		RecipeName    string
+		Username 	string
+		RealmId	 	int
 	}
 
 	var newSubbedItem SubbedItem
@@ -120,14 +121,14 @@ func createSubbedItem(res http.ResponseWriter, req *http.Request) {
 	body, _ := ioutil.ReadAll(req.Body)
 	fmt.Println(string(body))
 	json.Unmarshal(body, &newSubbedItem)
-	fmt.Printf("itemID: %s, userID: %s", newSubbedItem.itemID, newSubbedItem.userId)
+	fmt.Printf("itemID: %s, userID: %s", newSubbedItem.RecipeName, newSubbedItem.Username)
 	//Insert new SubbedItem to tblSubbedItems
 
 	db, err := sql.Open("mysql", dbh.GetConnectionString())
 	if nil != err {
 		fmt.Println("Error connecting to database: ", err.Error())
 	}
-	_, err = db.Exec("INSERT INTO tblSubbedItems(itemId,userId) VALUES (?,?)", newSubbedItem.userId, newSubbedItem.itemID)
+	_, err = db.Exec("INSERT INTO tblSubbedItems(RecipeName,Username,RealmID) VALUES (?,?,?)", newSubbedItem.RecipeName, newSubbedItem.Username, newSubbedItem.RealmId)
 	//sqlInsert := "INSERT INTO tblSubbedItems(itemId, userId) VALUES ($1, $2"
 	defer db.Close()
 

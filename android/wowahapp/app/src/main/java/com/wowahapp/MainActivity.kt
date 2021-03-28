@@ -3,16 +3,16 @@ package com.wowahapp
 import android.animation.ValueAnimator
 import android.content.Intent
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.KeyEvent
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import android.widget.Toast
-import android.os.Vibrator
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import com.auth0.android.Auth0
 import com.auth0.android.authentication.AuthenticationAPIClient
 import com.auth0.android.authentication.AuthenticationException
@@ -20,8 +20,6 @@ import com.auth0.android.callback.Callback
 import com.auth0.android.provider.WebAuthProvider
 import com.auth0.android.result.Credentials
 import com.auth0.android.result.UserProfile
-import kotlinx.android.synthetic.main.activity_main.*
-
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlin.system.exitProcess
 
@@ -46,12 +44,6 @@ class MainActivity : AppCompatActivity() {
         editPassword.setOnKeyListener(View.OnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
 
-                // For now we just immediately go to the Home Activity
-                val homeIntent = Intent(this, HomeActivity::class.java)
-                startActivity(homeIntent)
-
-                //hash username into var
-                //hash password into var
                 sendLoginRequest()
                 return@OnKeyListener true
             }
@@ -130,6 +122,9 @@ class MainActivity : AppCompatActivity() {
                         val email = result.email
                         val name = result.nickname
                         Toast.makeText(this@MainActivity, email + "\n" + name, Toast.LENGTH_SHORT).show()
+
+                        //save userName to global var
+                        result.email?.let { (application as CustomApplication).setUserName(it) }
                     }
                 })
     }

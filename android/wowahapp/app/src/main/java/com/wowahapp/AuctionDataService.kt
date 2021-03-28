@@ -8,6 +8,7 @@ import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import org.json.JSONException
+import org.json.JSONObject
 
 
 class AuctionDataService {
@@ -21,6 +22,12 @@ class AuctionDataService {
         fun onResponse(response : ArrayList<String>)
         fun onError(error : String)
     }
+
+    interface RealmListListener {
+        fun onResponse(response : Map<String, Int>)
+        fun onError(error : String)
+    }
+
 
     fun getAllRecipes(realmID : String, applicationContext : Context, recipeListListener : ArrayListListener ) {
         val url = "https://wowahapp.com/allrecipes/" + realmID
@@ -102,14 +109,16 @@ class AuctionDataService {
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 
-    fun getAllServers(applicationContext: Context, responseListener: ArrayListListener) {
+    fun getAllServers(applicationContext: Context, responseListener: RealmListListener) {
         val url = "http://192.168.0.24:49155/allservers"
+        var tmp: JSONObject
         val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response -> try {
-            var servArray : ArrayList<String> = ArrayList<String>()
+            var servers : MutableMap<String, Int> = emptyMap<String, Int>().toMutableMap()
             for (i in 0 until response.length()) {
-                servArray.add(response.getString(i))
+                tmp = JSONObject(response.getString(i))
+                servers[tmp.getString("RealmName")] = tmp.getString("CnctdRealmID").toInt()
             }
-            responseListener.onResponse(servArray)
+            responseListener.onResponse(servers)
         } catch (e: JSONException ) {
             e.printStackTrace()
         }
