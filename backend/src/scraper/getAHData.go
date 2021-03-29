@@ -33,7 +33,7 @@ var newAuctionTableQuery = "CREATE TABLE tbl_auctions_current (" +
 
 func main() {
 	//scrapeRecipes()
-	supportedRealms := getSupportedRealms()
+
 	connectionString := dbh.GetConnectionString()
 	accessToken := getAccessToken()
 	db, err := sql.Open("mysql", connectionString)
@@ -41,6 +41,9 @@ func main() {
 		fmt.Println("Connection to database failed: " + err.Error())
 	}
 	defer db.Close()
+
+
+	realms := getDistinctRealms(db)
 
 	//First we rename the old table. This is currently our only method of archiving historical price data
 	archiveTableName := fmt.Sprintf("aucts_date%s",time.Now().Local().Format("2006_01_02_15_04_05"))
@@ -56,7 +59,7 @@ func main() {
 	}
 	conn.Close()
 
-	for _, realm := range supportedRealms.SupportedRealms {
+	for _, realm := range realms {
 		//now we put all the realms auctions in the new table
 		auctions := PullAuctions(realm, getAccessToken())
 		for _, auction := range auctions.Auctions {
@@ -181,11 +184,18 @@ type Recipes struct {
 	}
 }
 
-func getSupportedRealms() Realms {
-	supportedRealms := Realms{}
-	body, _ := ioutil.ReadFile("conf.json")
-	json.Unmarshal(body, &supportedRealms)
-	return supportedRealms
+func getDistinctRealms(db *sql.DB) []int {
+	allSupportedRealms := dbh.GetSupportedServers(db)
+	var distinctRealms []int
+	for realm := range allSupportedRealms {
+		for d := range distinctRealms {
+			if distinctRealms[d] == allSupportedRealms[realm].CnctdRealmID {
+				continue //bail if it already exists.
+			}
+		}				//add to list if it doesn't
+		distinctRealms = append(distinctRealms, allSupportedRealms[realm].CnctdRealmID)
+	}
+	return distinctRealms
 }
 
 func PullAuctions(realmID int, accessToken string) AuctionLedger {

@@ -1,6 +1,7 @@
 package com.wowahapp
 
 import android.content.Context
+import android.widget.Toast
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.Response
@@ -14,22 +15,27 @@ import org.json.JSONObject
 class AuctionDataService {
 
     interface VolleyResponseListener {
-        fun onResponse(response : String)
-        fun onError(error : String)
+        fun onResponse(response: String)
+        fun onError(error: String)
     }
 
     interface ArrayListListener {
-        fun onResponse(response : ArrayList<String>)
-        fun onError(error : String)
+        fun onResponse(response: ArrayList<String>)
+        fun onError(error: String)
     }
 
     interface RealmListListener {
-        fun onResponse(response : Map<String, Int>)
-        fun onError(error : String)
+        fun onResponse(response: Map<String, Int>)
+        fun onError(error: String)
+    }
+
+    interface POSTlistener {
+        fun onResponse(response: String)
+        fun onError(error: String)
     }
 
 
-    fun getAllRecipes(realmID : String, applicationContext : Context, recipeListListener : ArrayListListener ) {
+    fun getAllRecipes(realmID: String, applicationContext : Context, recipeListListener : ArrayListListener ) {
         val url = "https://wowahapp.com/allrecipes/" + realmID
         
         var recipeList = ArrayList<String>()
@@ -54,7 +60,7 @@ class AuctionDataService {
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 
-    fun getItemListing(itemName : String, realmID : String, applicationContext : Context, responseListener : VolleyResponseListener) {
+    fun getItemListing(itemName: String, realmID: String, applicationContext: Context, responseListener: VolleyResponseListener) {
         val url = "https://wowahapp.com:443/itemlisting/" + itemName.replace(" ", "%20") + "/" +  realmID // crappy URL encoding
         var unitPrice : Double
         var buyoutPrice : Double
@@ -76,7 +82,7 @@ class AuctionDataService {
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 
-    fun getAllProfessions(applicationContext: Context, responseListener : ArrayListListener) {
+    fun getAllProfessions(applicationContext: Context, responseListener: ArrayListListener) {
         val url = "https://wowahapp.com/allprofessions"
         val request = JsonArrayRequest(Request.Method.GET, url, null,
             Response.Listener {
@@ -137,5 +143,6 @@ class AuctionDataService {
         }, Response.ErrorListener { error -> error.printStackTrace() })
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
+
 
 }

@@ -1,27 +1,14 @@
 package com.wowahapp
 
-import android.graphics.Color
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.LayoutInflater
+import android.service.autofill.UserData
 import android.view.View
-import android.view.ViewGroup
-import android.view.ViewParent
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.android.volley.NetworkResponse
-import com.android.volley.Request
-import com.android.volley.RequestQueue
-import com.android.volley.Response
-import com.android.volley.toolbox.*
-import com.wowahapp.AuctionDataService
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
-import java.math.BigInteger
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+
 
 
 class AddRecipeActivity : AppCompatActivity() {
@@ -59,6 +46,15 @@ class AddRecipeActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 var realmID = serverMap[parent?.getItemAtPosition(position)]
+
+
+                //DELETE THIS BEFORE DEPLOYING TO SERVER !!!!
+                realmID = 76 // !!!
+                //DELETE THIS BEFORE DEPLOYING TO SERVER !!!!
+                //DELETE THIS BEFORE DEPLOYING TO SERVER
+                //DELETE THIS BEFORE DEPLOYING TO SERVER   !!!!!!
+
+
                 recipeList.clear()
                 recipeRecycler?.adapter?.notifyDataSetChanged()
                 auctionDataService.getAllRecipes(realmID.toString(), applicationContext, object : AuctionDataService.ArrayListListener {
@@ -124,10 +120,17 @@ class AddRecipeActivity : AppCompatActivity() {
             for (r in recipeAdapter.getRecipeList()) {
                 if (r.getIsSelected() == true) {
                     // Subscribe user to recipe
+                    val subscriptionRealmID = serverMap[serverSelectSpinner.selectedItem].toString()
+                    val recipeName = r.getRecipeName()
+                    recipeName?.let { it1 ->
+                        UserDataService.subscribeRecipe((application as CustomApplication).getUserName(), it1, subscriptionRealmID, applicationContext)
+                    }
+
                     println((application as CustomApplication).getUserName() +" "+r.getRecipeName()+" "+serverMap[serverSelectSpinner.selectedItem])
                 }
             }
-            // return to HomeActivity
+            intent = Intent(this@AddRecipeActivity, HomeActivity::class.java)
+            startActivity(intent)
         }
 
     }

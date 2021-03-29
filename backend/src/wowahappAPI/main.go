@@ -18,6 +18,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func main() {
@@ -38,7 +39,7 @@ func handleRequest() {
 	router.HandleFunc("/allexpansions/", getExpansions)
 	router.HandleFunc("/itemlisting/{itemName}/{realmID}", getItemListing)
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
-	router.HandleFunc("/createuser/", createSubbedItem).Methods("POST")
+	router.HandleFunc("/subscriberecipe/", createSubbedItem).Methods("POST")
 	router.HandleFunc("/recipebasecost/{recipeName}/{realmID}", getRecipeBaseCost)
 	router.HandleFunc("/allservers/", getServers)
 
@@ -110,9 +111,9 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 func createSubbedItem(res http.ResponseWriter, req *http.Request) {
 
 	type SubbedItem struct {
-		RecipeName    string
-		Username 	string
-		RealmId	 	int
+		RealmID	 	string `realmID`
+		RecipeName  string `json:recipeName`
+		Username 	string `json:username`
 	}
 
 	var newSubbedItem SubbedItem
@@ -121,14 +122,16 @@ func createSubbedItem(res http.ResponseWriter, req *http.Request) {
 	body, _ := ioutil.ReadAll(req.Body)
 	fmt.Println(string(body))
 	json.Unmarshal(body, &newSubbedItem)
-	fmt.Printf("itemID: %s, userID: %s", newSubbedItem.RecipeName, newSubbedItem.Username)
+	fmt.Printf("realmID: %s, userID: %s, recipeName: %s", newSubbedItem.RealmID, newSubbedItem.Username, newSubbedItem.RecipeName)
 	//Insert new SubbedItem to tblSubbedItems
 
 	db, err := sql.Open("mysql", dbh.GetConnectionString())
 	if nil != err {
 		fmt.Println("Error connecting to database: ", err.Error())
 	}
-	_, err = db.Exec("INSERT INTO tblSubbedItems(RecipeName,Username,RealmID) VALUES (?,?,?)", newSubbedItem.RecipeName, newSubbedItem.Username, newSubbedItem.RealmId)
+	convertedRealmID, _ := strconv.Atoi(newSubbedItem.RealmID)
+
+	_, err = db.Exec("INSERT INTO tbl_recipe_sub(recipeName,username,realmID) VALUES (?,?,?)", newSubbedItem.RecipeName, newSubbedItem.Username, convertedRealmID)
 	//sqlInsert := "INSERT INTO tblSubbedItems(itemId, userId) VALUES ($1, $2"
 	defer db.Close()
 
