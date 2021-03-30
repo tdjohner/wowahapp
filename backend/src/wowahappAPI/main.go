@@ -50,6 +50,7 @@ func handleRequest() {
 	router.HandleFunc("/allrecipes/{realmID}", getAllRecipes)
 	router.HandleFunc("/allprofessions/", getProfessions)
 	router.HandleFunc("/allexpansions/", getExpansions)
+	router.HandleFunc("/detailedlisting/{recipeName}/{realmID}", getDetailedListing)
 	router.HandleFunc("/getsubbedrecipes/{username}", getSubbedRecipes)
 	router.HandleFunc("/itemlisting/{itemName}/{realmID}", getItemListing)
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
@@ -63,6 +64,18 @@ func handleRequest() {
 func landingPage(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(res, "Hello World: Landing Page")
 	fmt.Println("Endpoint: Landing Page")
+}
+
+func getDetailedListing(res http.ResponseWriter, req *http.Request) {
+
+	vars := mux.Vars(req)
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
+	defer db.Close()
+	reagentDetails := dbh.GetDetailedBreakdown(vars["recipeName"], vars["realmID"], db )
+	json.NewEncoder(res).Encode(reagentDetails)
 }
 
 func getItemListing(res http.ResponseWriter, req *http.Request) {
@@ -204,7 +217,6 @@ func createSubbedItem(res http.ResponseWriter, req *http.Request) {
 	_, err = db.Exec("INSERT INTO tbl_recipe_sub(recipeName,username,realmID) VALUES (?,?,?)", newSubbedItem.RecipeName, newSubbedItem.Username, convertedRealmID)
 	//sqlInsert := "INSERT INTO tblSubbedItems(itemId, userId) VALUES ($1, $2"
 	defer db.Close()
-
 }
 
 func getProfessions(res http.ResponseWriter, req *http.Request) {
@@ -237,7 +249,6 @@ func getServers(res http.ResponseWriter, req *http.Request) {
 	defer db.Close()
 	servers := dbh.GetSupportedServers(db)
 	json.NewEncoder(res).Encode(servers)
-
 }
 
 func getRecipeBaseCost(res http.ResponseWriter, req *http.Request) {

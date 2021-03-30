@@ -54,6 +54,8 @@ class AuctionDataService {
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 
+    fun getListingDetails(recipeName: String, realmID: String, applicationContext: Context, )
+
     private fun jsonToRecipe(recipeJSON: JSONObject): RecipeModel {
         val name = recipeJSON.getString("Name")
         val revenue = recipeJSON.getString("SalePrice").toDouble()/10000
