@@ -96,11 +96,16 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun prepareItems() {
-        var recipe = RecipeModel("Spaghetti", "40.00","39.00", "1000","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
+        var recipe = RecipeModel("Spaghetti", "40.00","1", "3","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
         customAdapter.addItem(recipe)
-        recipe = RecipeModel("Noodles", "500.00","600.00", "1","x")
+        recipe = RecipeModel("Noodles", "500.00","1", "2","x")
         customAdapter.addItem(recipe)
-        recipe = RecipeModel("1","1","1","1","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
+        recipe = RecipeModel("test","1","1","1","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
+        customAdapter.addItem(recipe)
+        customAdapter.addItem(recipe)
+        recipe = RecipeModel("test", "500.00","2", "1","x")
+        customAdapter.addItem(recipe)
+        recipe = RecipeModel("test","1","3","1","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
         customAdapter.addItem(recipe)
     }
     private fun prepareDetails(){

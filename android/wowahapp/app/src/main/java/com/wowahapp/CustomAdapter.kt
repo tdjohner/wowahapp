@@ -8,10 +8,7 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.PopupWindow
-import android.widget.TextView
+import android.widget.*
 import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -28,7 +25,7 @@ class CustomAdapter(private val data: List<RecipeModel>) :
             val averageSalePrice = view.findViewById<TextView>(R.id.averageSalePrice)
             val salePrice = view.findViewById<TextView>(R.id.salePrice)
             val link = view.findViewById<TextView>(R.id.link)
-            val removeButton = view.findViewById<Button>(R.id.removeItem)
+            val removeButton = view.findViewById<ImageButton>(R.id.removeItem)
             val itemImage = view.findViewById<ImageView>(R.id.itemImage)
             var diff = recipe.getDiff()
             recipeName.text = recipe.getRecipeName()
@@ -37,16 +34,27 @@ class CustomAdapter(private val data: List<RecipeModel>) :
             link.text=recipe.getLink()
             var positive=Color.argb(255,0,255,0)
             val negative=Color.argb(255,255,0,0)
+            val neutral=Color.argb(255,255,255, 255)
             var color: Int
             when {
-                diff>=2.0f -> {
+                diff>=3.0f -> {
                     color= positive
                 }
-                diff>=-2.0f -> {
-                    val blue = ((2.0f-diff.absoluteValue)*127).toInt()
-                    diff=diff/2.0f+1.0f
-                    color = (positive+((positive-negative)*diff)).toInt()
-                    color += Color.argb(255,0,0,blue)
+                diff>=2.0f -> {
+                    diff -= 2.0f
+                    color = (positive/2+((positive-positive/2)*diff)).toInt()
+                }
+                diff>=1.0f -> {
+                    diff-=1.0f
+                    color = (neutral+((positive/2-neutral)*diff)).toInt()
+                }
+                diff>=0.5f -> {
+                    diff=diff*2.0f-1.0f
+                    color = (negative/2+((neutral-negative/2)*diff)).toInt()
+                }
+                diff>=0.333f ->{
+                    diff=diff*6.0f-2.0f
+                    color = (negative+((negative/2-negative)*diff)).toInt()
                 }
                 else -> {
                     color=negative
