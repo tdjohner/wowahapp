@@ -4,6 +4,8 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.content.Context
+import android.view.*
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,7 +21,9 @@ class AddRecipeActivity : AppCompatActivity() {
     lateinit var confirmButton : Button
     lateinit var serverMap : Map<String, Int>
     private lateinit var recipeAdapter : CustomAdapterShopping
+    private lateinit var customAdapterDetails: CustomAdapterDetails
     private val recipeList = ArrayList<RecipeModel>()
+    private val detailList = ArrayList<DetailedEntries>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,9 +41,30 @@ class AddRecipeActivity : AppCompatActivity() {
         recipeAdapter = CustomAdapterShopping(recipeList)
         recipeRecycler.adapter = recipeAdapter
 
+        recipeAdapter.setOnClick(object : RecyclerviewCallbacks<RecipeModel> {
+            override fun onItemClick(view: View, position: Int, item: RecipeModel){
+                //This is just to populate it to test
+                val reagentList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
+                val reagent: ArrayList<String> = ArrayList()
+                val availableList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
+                val available: ArrayList<String> = ArrayList()
+                available.add("${item.getAverageSalePrice()}")
+                availableList.add(available)
+                available.add("${item.getSalePrice()}")
+                available.add("${item.getAverageSalePrice()}")
+                availableList.add(available)
+                reagent.add("${item.getRecipeName()}")
+                reagent.add("${item.getAverageSalePrice()}")
+                reagentList.add(reagent)
 
+                //Both of these lists are ArrayList<ArrayList<String>>
+                //You want the first list(where reagentList is) entered here to be lists of reagents and their amounts
+                //second list is lists of amount available, name, and cost
+                //headers and string value changes can be made in DetailedView.kt in the getEntries function
+                val detailedView : DetailedView=DetailedView("${item.getRecipeName()}", reagentList, availableList)
+                showDetail("${item.getRecipeName()}",detailedView)
 
-
+            }})
 
         serverSelectSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -130,6 +155,25 @@ class AddRecipeActivity : AppCompatActivity() {
         val r = rtrns.toDouble()
         var net = r - c
         return String.format("%.2f", net)
+    }
+    private fun showDetail(title: String, detailedView: DetailedView){
+        var detailedEntries = ArrayList<DetailedEntries>()
+        detailedEntries=detailedView.getEntries()
+        val inflater=getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val view = inflater.inflate(R.layout.recipe_details, null)
+        val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView)
+        customAdapterDetails = CustomAdapterDetails(detailList)
+        customAdapterDetails.setItems(detailedEntries)
+        val layoutManager = LinearLayoutManager(applicationContext)
+        recyclerView.layoutManager = layoutManager
+        recyclerView.adapter = customAdapterDetails
+        val title = view.findViewById<TextView>(R.id.recipeName)
+        title.text=detailedView.getTitle()
+
+        val popUp = PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT)
+        popUp.isOutsideTouchable=true
+        popUp.isFocusable=true
+        popUp.showAtLocation(view, Gravity.CENTER,0,0)
     }
 }
 

@@ -35,6 +35,45 @@ class AuctionDataService {
         fun onError(error: String)
     }
 
+    interface ReagentPairListener {
+        fun onResponse(response: Pair<ArrayList<ArrayList<String>>, ArrayList<ArrayList<String>>>)
+        fun onError(error: String)
+    }
+
+    fun getListingDetails(recipeName: String, realmID: String, applicationContext: Context, reagentPairListener: ReagentPairListener) {
+        val name = recipeName.replace(" ", "%20") // some shady formatting
+        val url = "http://192.168.0.24:49155/detailedlisting/" + name + "/" + realmID
+
+        val request = JsonArrayRequest(Request.Method.GET, url, null,
+            Response.Listener { response ->
+                try {
+                    var requirements = ArrayList<ArrayList<String>>()
+                    var listings = ArrayList<ArrayList<String>>()
+                    var alreadyAdded = ArrayList<String>()
+                    for (i in 0 until response.length()) {
+                        val reagentName = response.getJSONObject(i).getString("Name")
+                        if (reagentName !in alreadyAdded) {
+                            alreadyAdded.add(reagentName)
+                            var reagentRequirement = ArrayList<String>()
+                            reagentRequirement.add(reagentName)
+                            reagentRequirement.add(response.getJSONObject(i).getString("Quantity"))
+                            requirements.add(reagentRequirement)
+                        }
+
+                        var reagentListings = ArrayList<String>()
+                        reagentListings.add(response.getJSONObject(i).getString("Name"))
+                        reagentListings.add(response.getJSONObject(i).getString("Available"))
+                        reagentListings.add(response.getJSONObject(i).getString("Cost"))
+                        listings.add(reagentListings)
+                    }
+                    reagentPairListener.onResponse(Pair(requirements, listings))
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+            }, Response.ErrorListener { error -> error.printStackTrace() })
+        VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
+    }
+
     //The username parameter could be gotten from App.kt but I want it to be explicitly apparent through usage.
     fun getSubbedRecipes(username: String, applicationContext: Context, recipeModelListener: RecipeModelListener) {
         val url = "http://192.168.0.24:49155/getsubbedrecipes/" + username
@@ -53,8 +92,6 @@ class AuctionDataService {
         }, Response.ErrorListener { error -> error.printStackTrace() })
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
-
-    fun getListingDetails(recipeName: String, realmID: String, applicationContext: Context, )
 
     private fun jsonToRecipe(recipeJSON: JSONObject): RecipeModel {
         val name = recipeJSON.getString("Name")
