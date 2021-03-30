@@ -37,7 +37,6 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var account : Auth0
     private var cachedCredentials: Credentials? = null
     private var cachedUserProfile: UserProfile? = null
-    private var selectedItem: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,19 +68,24 @@ class HomeActivity : AppCompatActivity() {
         recyclerView.adapter = customAdapter
         customAdapter.setOnClick(object : RecyclerviewCallbacks<RecipeModel> {
             override fun onItemClick(view: View, position: Int, item: RecipeModel){
-            selectedItem = position
+                //This is just to populate it to test
                 val reagentList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
                 val reagent: ArrayList<String> = ArrayList()
                 val availableList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
                 val available: ArrayList<String> = ArrayList()
-                reagent.add("${item.getAverageSalePrice()}")
-                reagentList.add(reagent)
-                reagent.add("${item.getSalePrice()}")
-                reagent.add("${item.getAverageSalePrice()}")
-                reagentList.add(reagent)
+                available.add("${item.getAverageSalePrice()}")
+                availableList.add(available)
                 available.add("${item.getSalePrice()}")
                 available.add("${item.getAverageSalePrice()}")
                 availableList.add(available)
+                reagent.add("${item.getRecipeName()}")
+                reagent.add("${item.getAverageSalePrice()}")
+                reagentList.add(reagent)
+
+                //Both of these lists are ArrayList<ArrayList<String>>
+                //You want the first list(where reagentList is) entered here to be lists of reagents and their amounts
+                //second list is lists of amount available, name, and cost
+                //headers and string value changes can be made in DetailedView.kt in the getEntries function
                 val detailedView : DetailedView=DetailedView("${item.getRecipeName()}", reagentList, availableList)
                 showDetail("${item.getRecipeName()}",detailedView)
 
@@ -92,9 +96,9 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun prepareItems() {
-        var recipe = RecipeModel("Spaghetti", "$40.00","$39.00", "gfjhkfghjjk","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
+        var recipe = RecipeModel("Spaghetti", "40.00","39.00", "1000","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
         customAdapter.addItem(recipe)
-        recipe = RecipeModel("Noodles", "$500.00","$600.00", "plplpl","x")
+        recipe = RecipeModel("Noodles", "500.00","600.00", "1","x")
         customAdapter.addItem(recipe)
         recipe = RecipeModel("1","1","1","1","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
         customAdapter.addItem(recipe)

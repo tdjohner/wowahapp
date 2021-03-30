@@ -54,4 +54,11 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
     fun setImageLink(imageLink: String?){
         this.imageLink = imageLink!!
     }
+    fun getDiff(): Float{
+        var diff: Float = 1.0F
+        if(this.link.toFloat()!=0.0F){
+            diff=(this.link.toFloat()-this.salePrice.toFloat())/this.link.toFloat()
+        }
+        return diff
+    }
 }
