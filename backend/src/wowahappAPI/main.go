@@ -30,6 +30,19 @@ type Recipe struct {
 	Name string `json:"name"`
 }
 
+type RecipeSub struct {
+	ID  int    `json:"id"`
+	Name string `json:"name"`
+	Realm int `json:"realmID"`
+}
+
+type RecipeModel struct {
+	Name string
+	SalePrice int
+	Cost int
+	Realm int
+}
+
 func handleRequest() {
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -37,6 +50,7 @@ func handleRequest() {
 	router.HandleFunc("/allrecipes/{realmID}", getAllRecipes)
 	router.HandleFunc("/allprofessions/", getProfessions)
 	router.HandleFunc("/allexpansions/", getExpansions)
+	router.HandleFunc("/getsubbedrecipes/{username}", getSubbedRecipes)
 	router.HandleFunc("/itemlisting/{itemName}/{realmID}", getItemListing)
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
 	router.HandleFunc("/subscriberecipe/", createSubbedItem).Methods("POST")
@@ -80,8 +94,6 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 	var recipes []Recipe
 	vars := mux.Vars(req)
 
-	fmt.Println("allrecipes endpoint called")
-
 	connectionString := dbh.GetConnectionString()
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
@@ -90,7 +102,6 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 	defer db.Close()
 
 	q := "SELECT distinct rcp.id, rcp.name FROM tbl_recipes rcp join tbl_item itm on rcp.name = itm.name join tbl_auctions_current auct on auct.itemID = itm.id where auct.cnctdRealmID = " +vars["realmID"] + ";"
-	fmt.Println(q)
 	result, err := db.Query(q)
 	if err != nil {
 		fmt.Println("Error writing to database: " + err.Error())
@@ -102,9 +113,68 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 			result.Scan(&r.ID, &r.Name)
 			recipes = append(recipes, r)
 		}
-
 		json.NewEncoder(res).Encode(recipes)
 	}
+}
+
+func getSubbedRecipes(res http.ResponseWriter, req *http.Request) {
+
+	vars := mux.Vars(req)
+	recipeList := getUsersSubs(vars["username"])
+	var recipeModels []RecipeModel
+
+	connectionString := dbh.GetConnectionString()
+	db, err := sql.Open("mysql", connectionString)
+	if err != nil {
+		fmt.Println("Connection to database failed: " + err.Error())
+	}
+	defer db.Close()
+
+	for i := range recipeList {
+
+		var newRecipe RecipeModel
+		convertedRealmID := strconv.Itoa(recipeList[i].Realm)
+		listing := dbh.GetAuctionByName(recipeList[i].Name, convertedRealmID, db)
+
+		newRecipe.Name = recipeList[i].Name
+		newRecipe.SalePrice = listing.Buyout + listing.UnitPrice
+		newRecipe.Cost = dbh.RecipeBaseCost(db, recipeList[i].Name, convertedRealmID)
+		newRecipe.Realm = recipeList[i].Realm
+		recipeModels = append(recipeModels, newRecipe)
+	}
+	json.NewEncoder(res).Encode(recipeModels)
+}
+
+func getUsersSubs(username string) []RecipeSub {
+
+	var recipes []RecipeSub
+
+	connectionString := dbh.GetConnectionString()
+	db, err := sql.Open("mysql", connectionString)
+	if err != nil {
+		fmt.Println("Connection to database failed: " + err.Error())
+	}
+	defer db.Close()
+
+	q := 	"select distinct rcp.id, rcp.name, sub.realmID " +
+		"FROM tbl_recipes rcp " +
+		"join tbl_item itm on rcp.name = itm.name " +
+		"join tbl_auctions_current auct on auct.itemID = itm.id " +
+		"join tbl_recipe_sub sub on sub.recipeName = rcp.name " +
+		"and sub.userName = \"" + username + "\";"
+
+	result, err := db.Query(q)
+	if err != nil {
+		fmt.Println("Error writing to database: " + err.Error())
+	} else {
+		defer result.Close()
+		for result.Next() {
+			var r RecipeSub
+			result.Scan(&r.ID, &r.Name, &r.Realm)
+			recipes = append(recipes, r)
+		}
+	}
+	return recipes
 }
 
 // Create database record example

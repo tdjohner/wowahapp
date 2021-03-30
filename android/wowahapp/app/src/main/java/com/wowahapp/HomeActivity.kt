@@ -38,6 +38,8 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
+        val auctionDataService = AuctionDataService()
+
         // Initialize the account settings
         account = Auth0(
             getString(R.string.com_auth0_clientId),
@@ -61,17 +63,21 @@ class HomeActivity : AppCompatActivity() {
         val layoutManager = LinearLayoutManager(applicationContext)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = customAdapter
-        prepareItems()
 
-    }
+        auctionDataService.getSubbedRecipes((application as CustomApplication).getUserName(), applicationContext, object: AuctionDataService.RecipeModelListener {
+            override fun onResponse(response: ArrayList<RecipeModel>) {
+                for (r in response) {
+                    customAdapter.addItem(r)
+                }
+            }
 
-    private fun prepareItems() {
-        var recipe = RecipeModel("Spaghetti", "$40.00","$39.00", "gfjhkfghjjk","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
-        customAdapter.addItem(recipe)
-        recipe = RecipeModel("Noodles", "$500.00","$600.00", "plplpl","x")
-        customAdapter.addItem(recipe)
-        recipe = RecipeModel("1","1","1","1","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
-        customAdapter.addItem(recipe)
+            override fun onError(error: String) {
+                println("Error getting subscribed item JSON: " + error)
+            }
+        })
+
+
+
     }
 
     private fun logout() {

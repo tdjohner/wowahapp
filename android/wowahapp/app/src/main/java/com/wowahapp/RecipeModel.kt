@@ -2,13 +2,14 @@ package com.wowahapp
 
 import android.widget.CheckBox
 
-class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: String?, link: String?, imageLink: String?){
+class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: String?, link: String?, imageLink: String?, realmID: Int?){
     private var recipeName: String
     private var averageSalePrice: String
     private var salePrice: String
     private var link: String
     private var isSelected: Boolean
     private var imageLink: String
+    private var realmID: Int
     init{
         this.recipeName = recipeName!!
         this.averageSalePrice = averageSalePrice!!
@@ -16,6 +17,15 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
         this.link = link!!
         this.isSelected = false
         this.imageLink = imageLink!!
+        this.realmID = realmID!!
+    }
+
+    fun getRealmID(): Int?{
+        return realmID
+    }
+
+    fun setRealmID(id: Int?){
+        this.realmID = id!!
     }
 
     fun getRecipeName(): String?{

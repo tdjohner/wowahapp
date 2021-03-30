@@ -217,3 +217,5 @@ func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 	}
 	return cost
 }
+
+

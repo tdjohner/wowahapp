@@ -3,7 +3,6 @@ package com.wowahapp
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.service.autofill.UserData
 import android.view.View
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -47,21 +46,13 @@ class AddRecipeActivity : AppCompatActivity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 var realmID = serverMap[parent?.getItemAtPosition(position)]
 
-
-                //DELETE THIS BEFORE DEPLOYING TO SERVER !!!!
-                realmID = 76 // !!!
-                //DELETE THIS BEFORE DEPLOYING TO SERVER !!!!
-                //DELETE THIS BEFORE DEPLOYING TO SERVER
-                //DELETE THIS BEFORE DEPLOYING TO SERVER   !!!!!!
-
-
                 recipeList.clear()
                 recipeRecycler?.adapter?.notifyDataSetChanged()
                 auctionDataService.getAllRecipes(realmID.toString(), applicationContext, object : AuctionDataService.ArrayListListener {
                     override fun onResponse(response: ArrayList<String>) {
                         // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
                         for (r in response) {
-                            var model = RecipeModel(r, "x", "x", "note","x")
+                            var model = RecipeModel(r, "x", "x", "note","x", 0)
                             auctionDataService.getItemListing(r, realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
                                 override fun onResponse(response: String) {
                                     val saleprice = response
@@ -125,12 +116,11 @@ class AddRecipeActivity : AppCompatActivity() {
                     recipeName?.let { it1 ->
                         UserDataService.subscribeRecipe((application as CustomApplication).getUserName(), it1, subscriptionRealmID, applicationContext)
                     }
-
-                    println((application as CustomApplication).getUserName() +" "+r.getRecipeName()+" "+serverMap[serverSelectSpinner.selectedItem])
+                    intent = Intent(this@AddRecipeActivity, HomeActivity::class.java)
+                    startActivity(intent)
                 }
             }
-            intent = Intent(this@AddRecipeActivity, HomeActivity::class.java)
-            startActivity(intent)
+
         }
 
     }

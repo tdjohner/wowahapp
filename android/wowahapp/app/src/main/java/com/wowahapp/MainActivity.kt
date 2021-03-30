@@ -62,8 +62,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         scrollingBackground()
-        //sendJson sends a json object to our backend
-        //sendJson()
     }
 
     // Validate user using Auth0 service
@@ -97,12 +95,19 @@ class MainActivity : AppCompatActivity() {
                         // This can be used to call APIs
                         val accessToken = result.accessToken
 
-                        val homeIntent = Intent(this@MainActivity, HomeActivity::class.java)
-                        startActivity(homeIntent)
-
+                        // save username to global
+                        AuthenticationAPIClient(account).userInfo(accessToken).start(object: Callback<UserProfile, AuthenticationException> {
+                            override fun onFailure(error: AuthenticationException) {
+                                println("Error establishing uername: " + error)
+                            }
+                            override fun onSuccess(result: UserProfile) {
+                                result.email?.let { (application as CustomApplication).setUserName(it) }
+                                val homeIntent = Intent(this@MainActivity, HomeActivity::class.java)
+                                startActivity(homeIntent)
+                            }
+                        })
                         Toast.makeText(this@MainActivity, "Logged in", Toast.LENGTH_SHORT).show()
                         showUserProfile(accessToken)
-
                     }
                 })
     }
@@ -116,15 +121,11 @@ class MainActivity : AppCompatActivity() {
                     override fun onFailure(error: AuthenticationException) {
                         Toast.makeText(this@MainActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
                     }
-
                     override fun onSuccess(result: UserProfile) {
                         // We have the user's profile!
                         val email = result.email
                         val name = result.nickname
                         Toast.makeText(this@MainActivity, email + "\n" + name, Toast.LENGTH_SHORT).show()
-
-                        //save userName to global var
-                        result.email?.let { (application as CustomApplication).setUserName(it) }
                     }
                 })
     }

@@ -10,6 +10,7 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import org.json.JSONException
 import org.json.JSONObject
+import java.math.BigDecimal
 
 
 class AuctionDataService {
@@ -29,27 +30,54 @@ class AuctionDataService {
         fun onError(error: String)
     }
 
-    interface POSTlistener {
-        fun onResponse(response: String)
+    interface RecipeModelListener {
+        fun onResponse(response: ArrayList<RecipeModel>)
         fun onError(error: String)
     }
 
+    //The username parameter could be gotten from App.kt but I want it to be explicitly apparent through usage.
+    fun getSubbedRecipes(username: String, applicationContext: Context, recipeModelListener: RecipeModelListener) {
+        val url = "http://192.168.0.24:49155/getsubbedrecipes/" + username
+
+        var recipeList = ArrayList<RecipeModel>()
+        val request = JsonArrayRequest(Request.Method.GET, url, null,
+        Response.Listener { response ->
+            try {
+                for (i in 0 until response.length()) {
+                    recipeList.add(jsonToRecipe(response.getJSONObject(i)))
+                }
+                recipeModelListener.onResponse(recipeList)
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
+        }, Response.ErrorListener { error -> error.printStackTrace() })
+        VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
+    }
+
+    private fun jsonToRecipe(recipeJSON: JSONObject): RecipeModel {
+        val name = recipeJSON.getString("Name")
+        val revenue = recipeJSON.getString("SalePrice").toDouble()/10000
+        val cost = recipeJSON.getString("Cost").toDouble()/10000
+        val realm = recipeJSON.getString("Realm").toInt()
+        val net = String.format("%.2f",(revenue - cost))
+        return RecipeModel(name, String.format("%.2f",revenue) , String.format("%.2f", cost), net, "x", realm)
+    }
 
     fun getAllRecipes(realmID: String, applicationContext : Context, recipeListListener : ArrayListListener ) {
         val url = "https://wowahapp.com/allrecipes/" + realmID
         
         var recipeList = ArrayList<String>()
         val request = JsonArrayRequest(Request.Method.GET, url, null,
-            Response.Listener { response -> try {
-                for (i in 0 until response.length()) {
-                    recipeList.add( response.getString(i).split(":")[2].replace("\"","").replace("}", ""))
+            Response.Listener { response ->
+                try {
+                    for (i in 0 until response.length()) {     //this parsing method is horrendous. TODO
+                        recipeList.add( response.getString(i).split(":")[2].replace("\"","").replace("}", ""))
+                    }
+                    recipeListListener.onResponse(recipeList)
+                } catch (e: JSONException) {
+                    e.printStackTrace()
                 }
-                recipeListListener.onResponse(recipeList)
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
-            },
-            Response.ErrorListener { error -> error.printStackTrace() })
+            }, Response.ErrorListener { error -> error.printStackTrace() })
         request.setRetryPolicy(
             DefaultRetryPolicy(
                 1000000,
