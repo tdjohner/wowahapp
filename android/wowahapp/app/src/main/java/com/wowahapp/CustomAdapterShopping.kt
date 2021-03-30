@@ -11,6 +11,7 @@ import com.bumptech.glide.Glide
 class CustomAdapterShopping(private val data: List<RecipeModel>) :
     RecyclerView.Adapter<CustomAdapterShopping.MyViewHolder>() {
     private var recipeList: MutableList<RecipeModel> = data as MutableList<RecipeModel>
+    var callback: RecyclerviewCallbacks<RecipeModel>? = null
     inner class MyViewHolder(val view: View) : RecyclerView.ViewHolder(view){
         fun bind(recipe: RecipeModel, index: Int){
             val recipeName = view.findViewById<TextView>(R.id.recipeName)
@@ -28,6 +29,9 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
                 .into(itemImage)
             toggleButton.setOnClickListener() {
                 toggleSubscribe(recipe, toggleButton)
+            }
+            view.setOnClickListener{
+                callback?.onItemClick(it, adapterPosition,recipeList[adapterPosition])
             }
         }
 
@@ -64,6 +68,9 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
 
     fun toggleSubscribe(recipe: RecipeModel, button: CheckBox) {
         recipe.setIsSelected(button.isChecked)
+    }
+    fun setOnClick(click: RecyclerviewCallbacks<RecipeModel>) {
+        callback=click
     }
 
 }

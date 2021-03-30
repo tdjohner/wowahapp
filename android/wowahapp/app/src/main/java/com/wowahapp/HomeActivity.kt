@@ -70,7 +70,6 @@ class HomeActivity : AppCompatActivity() {
         customAdapter.setOnClick(object : RecyclerviewCallbacks<RecipeModel> {
             override fun onItemClick(view: View, position: Int, item: RecipeModel){
             selectedItem = position
-                //Toast.makeText(this@HomeActivity,"${item.getRecipeName()}",Toast.LENGTH_SHORT).show()
                 val reagentList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
                 val reagent: ArrayList<String> = ArrayList()
                 val availableList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
@@ -83,9 +82,6 @@ class HomeActivity : AppCompatActivity() {
                 available.add("${item.getSalePrice()}")
                 available.add("${item.getAverageSalePrice()}")
                 availableList.add(available)
-                println(reagentList)
-                println(availableList)
-                println("HERHERHUEH")
                 val detailedView : DetailedView=DetailedView("${item.getRecipeName()}", reagentList, availableList)
                 showDetail("${item.getRecipeName()}",detailedView)
 
@@ -112,32 +108,16 @@ class HomeActivity : AppCompatActivity() {
     private fun showDetail(title: String, detailedView: DetailedView){
         var detailedEntries = ArrayList<DetailedEntries>()
         detailedEntries=detailedView.getEntries()
-        //println(detailedEntries)
         val inflater=getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val view = inflater.inflate(R.layout.recipe_details, null)
         val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView)
-        //customAdapter = CustomAdapter(itemsList)
         customAdapterDetails = CustomAdapterDetails(detailList)
-        //prepareDetails()
         customAdapterDetails.setItems(detailedEntries)
         val layoutManager = LinearLayoutManager(applicationContext)
         recyclerView.layoutManager = layoutManager
-        //recyclerView.adapter = customAdapter
         recyclerView.adapter = customAdapterDetails
         val title = view.findViewById<TextView>(R.id.recipeName)
         title.text=detailedView.getTitle()
-        /*
-        val recyclerViewDetail : RecyclerView = view.findViewById(R.id.recyclerView)
-
-        var adapter: CustomAdapterDetails = CustomAdapterDetails(detailedEntries)
-        val title = view.findViewById<TextView>(R.id.recipeName)
-        //val layoutManager = LinearLayoutManager(applicationContext)
-        //recyclerViewDetail.layoutManager = layoutManager
-        title.text=detailedView.getTitle()
-        //view.setBackgroundColor(0x000000)
-        //val layoutManager = LinearLayoutManager(applicationContext)
-        //recyclerView.layoutManager = layoutManager
-        recyclerViewDetail.adapter=adapter*/
 
         val popUp = PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT)
         popUp.isOutsideTouchable=true

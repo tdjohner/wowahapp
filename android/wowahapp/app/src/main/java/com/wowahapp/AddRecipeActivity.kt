@@ -1,11 +1,10 @@
 package com.wowahapp
 
+import android.content.Context
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import android.view.ViewParent
+import android.view.*
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,7 +30,9 @@ class AddRecipeActivity : AppCompatActivity() {
     lateinit var recipeRecycler : RecyclerView
     lateinit var confirmButton : Button
     private lateinit var recipeAdapter : CustomAdapterShopping
+    private lateinit var customAdapterDetails: CustomAdapterDetails
     private val recipeList = ArrayList<RecipeModel>()
+    private val detailList = ArrayList<DetailedEntries>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +49,25 @@ class AddRecipeActivity : AppCompatActivity() {
         recipeRecycler.layoutManager = LinearLayoutManager(applicationContext)
         recipeAdapter = CustomAdapterShopping(recipeList)
         recipeRecycler.adapter = recipeAdapter
+
+        recipeAdapter.setOnClick(object : RecyclerviewCallbacks<RecipeModel> {
+            override fun onItemClick(view: View, position: Int, item: RecipeModel){
+                val reagentList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
+                val reagent: ArrayList<String> = ArrayList()
+                val availableList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
+                val available: ArrayList<String> = ArrayList()
+                reagent.add("${item.getAverageSalePrice()}")
+                reagentList.add(reagent)
+                reagent.add("${item.getSalePrice()}")
+                reagent.add("${item.getAverageSalePrice()}")
+                reagentList.add(reagent)
+                available.add("${item.getSalePrice()}")
+                available.add("${item.getAverageSalePrice()}")
+                availableList.add(available)
+                val detailedView : DetailedView=DetailedView("${item.getRecipeName()}", reagentList, availableList)
+                showDetail("${item.getRecipeName()}",detailedView)
+
+            }})
 
 
         val realmID = "76"
@@ -125,6 +145,25 @@ class AddRecipeActivity : AppCompatActivity() {
         val r = rtrns.toDouble()
         var net = r - c
         return String.format("%.2f", net)
+    }
+    private fun showDetail(title: String, detailedView: DetailedView){
+        var detailedEntries = ArrayList<DetailedEntries>()
+        detailedEntries=detailedView.getEntries()
+        val inflater=getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val view = inflater.inflate(R.layout.recipe_details, null)
+        val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView)
+        customAdapterDetails = CustomAdapterDetails(detailList)
+        customAdapterDetails.setItems(detailedEntries)
+        val layoutManager = LinearLayoutManager(applicationContext)
+        recyclerView.layoutManager = layoutManager
+        recyclerView.adapter = customAdapterDetails
+        val title = view.findViewById<TextView>(R.id.recipeName)
+        title.text=detailedView.getTitle()
+
+        val popUp = PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT)
+        popUp.isOutsideTouchable=true
+        popUp.isFocusable=true
+        popUp.showAtLocation(view, Gravity.CENTER,0,0)
     }
 }
 
