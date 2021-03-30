@@ -1,12 +1,18 @@
     package com.wowahapp
 
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
+import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -29,7 +35,9 @@ class HomeActivity : AppCompatActivity() {
     lateinit var addRecipeButton : Button
     lateinit var logoutTextView : TextView
     private val itemsList = ArrayList<RecipeModel>()
+    private val detailList = ArrayList<DetailedEntries>()
     private lateinit var customAdapter: CustomAdapter
+    private lateinit var customAdapterDetails: CustomAdapterDetails
     private lateinit var account : Auth0
     private var cachedCredentials: Credentials? = null
     private var cachedUserProfile: UserProfile? = null
@@ -61,17 +69,73 @@ class HomeActivity : AppCompatActivity() {
         val layoutManager = LinearLayoutManager(applicationContext)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = customAdapter
+        customAdapter.setOnClick(object : RecyclerviewCallbacks<RecipeModel> {
+            override fun onItemClick(view: View, position: Int, item: RecipeModel){
+                //This is just to populate it to test
+                val reagentList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
+                val reagent: ArrayList<String> = ArrayList()
+                val availableList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
+                val available: ArrayList<String> = ArrayList()
+                available.add("${item.getAverageSalePrice()}")
+                availableList.add(available)
+                available.add("${item.getSalePrice()}")
+                available.add("${item.getAverageSalePrice()}")
+                availableList.add(available)
+                reagent.add("${item.getRecipeName()}")
+                reagent.add("${item.getAverageSalePrice()}")
+                reagentList.add(reagent)
+
+                //Both of these lists are ArrayList<ArrayList<String>>
+                //You want the first list(where reagentList is) entered here to be lists of reagents and their amounts
+                //second list is lists of amount available, name, and cost
+                //headers and string value changes can be made in DetailedView.kt in the getEntries function
+                val detailedView : DetailedView=DetailedView("${item.getRecipeName()}", reagentList, availableList)
+                showDetail("${item.getRecipeName()}",detailedView)
+
+        }})
         prepareItems()
+
 
     }
 
     private fun prepareItems() {
-        var recipe = RecipeModel("Spaghetti", "$40.00","$39.00", "gfjhkfghjjk","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
+        var recipe = RecipeModel("Spaghetti", "40.00","1", "3","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
         customAdapter.addItem(recipe)
-        recipe = RecipeModel("Noodles", "$500.00","$600.00", "plplpl","x")
+        recipe = RecipeModel("Noodles", "500.00","1", "2","x")
         customAdapter.addItem(recipe)
-        recipe = RecipeModel("1","1","1","1","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
+        recipe = RecipeModel("test","1","1","1","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
         customAdapter.addItem(recipe)
+        customAdapter.addItem(recipe)
+        recipe = RecipeModel("test", "500.00","2", "1","x")
+        customAdapter.addItem(recipe)
+        recipe = RecipeModel("test","1","3","1","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
+        customAdapter.addItem(recipe)
+    }
+    private fun prepareDetails(){
+        var detail = DetailedEntries(arrayListOf("test", "test", "test"))
+        customAdapterDetails.addItem(detail)
+    }
+
+
+    private fun showDetail(title: String, detailedView: DetailedView){
+        var detailedEntries = ArrayList<DetailedEntries>()
+        detailedEntries=detailedView.getEntries()
+        val inflater=getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val view = inflater.inflate(R.layout.recipe_details, null)
+        val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView)
+        customAdapterDetails = CustomAdapterDetails(detailList)
+        customAdapterDetails.setItems(detailedEntries)
+        val layoutManager = LinearLayoutManager(applicationContext)
+        recyclerView.layoutManager = layoutManager
+        recyclerView.adapter = customAdapterDetails
+        val title = view.findViewById<TextView>(R.id.recipeName)
+        title.text=detailedView.getTitle()
+
+        val popUp = PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT)
+        popUp.isOutsideTouchable=true
+        popUp.isFocusable=true
+        popUp.showAtLocation(view,Gravity.CENTER,0,0)
+        Toast.makeText(this@HomeActivity, detailedEntries[2].getMessage()[0],Toast.LENGTH_SHORT).show()
     }
 
     private fun logout() {
