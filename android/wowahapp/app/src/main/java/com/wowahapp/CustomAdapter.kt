@@ -36,7 +36,7 @@ class CustomAdapter(private val data: List<RecipeModel>) :
             val negative=Color.argb(255,255,0,0)
             val neutral=Color.argb(255,255,255, 255)
             var color: Int
-            when {
+            /*when {
                 diff>=3.0f -> {
                     color= positive
                 }
@@ -55,6 +55,30 @@ class CustomAdapter(private val data: List<RecipeModel>) :
                 diff>=0.333f ->{
                     diff=diff*6.0f-2.0f
                     color = (negative+((negative/2-negative)*diff)).toInt()
+                }
+                else -> {
+                    color=negative
+                }
+            }*/
+            when {
+                diff>=3.0f -> {
+                    color= positive
+                }
+                diff>=2.0f -> {
+                    diff -= 2.0f
+                    color = (positive/1.5+((positive-positive/1.5)*diff)).toInt()
+                }
+                diff>=0.0f -> {
+                    diff/=2.0f
+                    color = (neutral+((positive/1.5-neutral)*diff)).toInt()
+                }
+                diff>=-2.0f -> {
+                    diff= diff/2.0f +1.0f
+                    color = (neutral+((negative/1.5-neutral)*diff)).toInt()
+                }
+                diff>=-3.0f ->{
+                    diff+=3.0f
+                    color = (negative+((negative/1.5-negative)*diff)).toInt()
                 }
                 else -> {
                     color=negative

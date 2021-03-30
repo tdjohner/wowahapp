@@ -57,7 +57,8 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
     fun getDiff(): Float{
         var diff: Float = 1.0F
         if(this.link.toFloat()!=0.0F){
-            diff=(this.salePrice.toFloat())/this.link.toFloat()
+            diff=(this.link.toFloat()-this.salePrice.toFloat())/this.link.toFloat()
+            //diff=this.link.toFloat() //to test values directly
         }
         return diff
     }
