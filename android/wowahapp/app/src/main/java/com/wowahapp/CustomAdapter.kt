@@ -1,10 +1,15 @@
 package com.wowahapp
 
+import android.app.AlertDialog
+import android.app.Dialog
+import android.content.Context
+import android.content.Context.*
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
@@ -14,6 +19,7 @@ import com.bumptech.glide.Glide
 class CustomAdapter(private val data: List<RecipeModel>) :
     RecyclerView.Adapter<CustomAdapter.MyViewHolder>() {
     private var recipeList: MutableList<RecipeModel> = data as MutableList<RecipeModel>
+    var callback: RecyclerviewCallbacks<RecipeModel>? = null
     inner class MyViewHolder(val view: View) : RecyclerView.ViewHolder(view){
         fun bind(recipe: RecipeModel, index: Int){
             val recipeName = view.findViewById<TextView>(R.id.recipeName)
@@ -30,6 +36,9 @@ class CustomAdapter(private val data: List<RecipeModel>) :
                 .load(recipe.getImageLink())
                 .into(itemImage)
             removeButton.setOnClickListener{removeItem(index)}
+            view.setOnClickListener{
+                callback?.onItemClick(it, adapterPosition,recipeList[adapterPosition])
+            }
         }
 
     }
@@ -61,4 +70,7 @@ class CustomAdapter(private val data: List<RecipeModel>) :
         notifyDataSetChanged()
     }
 
+    fun setOnClick(click: RecyclerviewCallbacks<RecipeModel>) {
+        callback=click
+    }
 }
