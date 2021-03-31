@@ -8,9 +8,12 @@ import com.android.volley.Response
 import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.math.BigDecimal
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class AuctionDataService {
@@ -43,7 +46,6 @@ class AuctionDataService {
     fun getListingDetails(recipeName: String, realmID: String, applicationContext: Context, reagentPairListener: ReagentPairListener) {
         val name = recipeName.replace(" ", "%20") // some shady formatting
         val url = "http://192.168.0.24:49155/detailedlisting/" + name + "/" + realmID
-
         val request = JsonArrayRequest(Request.Method.GET, url, null,
             Response.Listener { response ->
                 try {
@@ -63,15 +65,22 @@ class AuctionDataService {
                         var reagentListings = ArrayList<String>()
                         reagentListings.add(response.getJSONObject(i).getString("Name"))
                         reagentListings.add(response.getJSONObject(i).getString("Available"))
-                        reagentListings.add(response.getJSONObject(i).getString("Cost"))
+                        val cost = formatCost(response.getJSONObject(i).getString("Cost"))
+                        reagentListings.add(cost)
                         listings.add(reagentListings)
                     }
+
                     reagentPairListener.onResponse(Pair(requirements, listings))
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
             }, Response.ErrorListener { error -> error.printStackTrace() })
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
+    }
+
+    fun formatCost(costString: String): String {
+        val costFloat = costString.toFloat()/10000
+        return String.format("%.2f", costFloat)
     }
 
     //The username parameter could be gotten from App.kt but I want it to be explicitly apparent through usage.

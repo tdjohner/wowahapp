@@ -9,13 +9,13 @@ import android.view.*
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.appcompat.widget.SearchView
 
 
 
 class AddRecipeActivity : AppCompatActivity() {
 
-    lateinit var searchTextView : TextView
-    lateinit var professionSpinner : Spinner
+    lateinit var searchTextView : SearchView
     lateinit var serverSelectSpinner : Spinner
     lateinit var recipeRecycler : RecyclerView
     lateinit var confirmButton : Button
@@ -32,8 +32,7 @@ class AddRecipeActivity : AppCompatActivity() {
 
         val auctionDataService = AuctionDataService()
 
-        searchTextView = findViewById<TextView>(R.id.searchTextView) as TextView
-        professionSpinner = findViewById<Spinner>(R.id.professionSelectSpinner) as Spinner
+        searchTextView = findViewById<SearchView>(R.id.searchView) as SearchView
         serverSelectSpinner = findViewById<Spinner>(R.id.serverSelectSpinner) as Spinner
         confirmButton = findViewById<Button>(R.id.confirmButton) as Button
         recipeRecycler = findViewById(R.id.recipeRecycler)
@@ -77,7 +76,7 @@ class AddRecipeActivity : AppCompatActivity() {
                     override fun onResponse(response: ArrayList<String>) {
                         // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
                         for (r in response) {
-                            var model = RecipeModel(r, "x", "x", "note","x", 0)
+                            var model = RecipeModel(r, "x", "x", "note","x", realmID)
                             auctionDataService.getItemListing(r, realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
                                 override fun onResponse(response: String) {
                                     val saleprice = response
@@ -111,16 +110,28 @@ class AddRecipeActivity : AppCompatActivity() {
             }
         }
 
+        recipeAdapter.setOnClick(object : RecyclerviewCallbacks<RecipeModel> {
+            override fun onItemClick(view: View, position: Int, item: RecipeModel){
+                //This is just to populate it to test
+                val reagentList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
+                val reagent: ArrayList<String> = ArrayList()
+                val availableList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
+                val available: ArrayList<String> = ArrayList()
 
-
-        auctionDataService.getAllProfessions(applicationContext, object : AuctionDataService.ArrayListListener {
-            override fun onResponse(response: ArrayList<String>) {
-                professionSpinner.adapter =  ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response)
+                auctionDataService.getListingDetails("${item.getRecipeName()}", "${item.getRealmID()}", applicationContext,
+                    object: AuctionDataService.ReagentPairListener {
+                        override fun onResponse(response: Pair<ArrayList<ArrayList<String>>, ArrayList<ArrayList<String>>>) {
+                            val detailsPair = response
+                            val detailedView = DetailedView("${item.getRecipeName()}", detailsPair.first, detailsPair.second)
+                            showDetail("${item.getRecipeName()}",detailedView)
+                        }
+                        override fun onError(error: String) {
+                            println("Error getting base recipe detailed info: " + error)
+                        }
+                    })
+                }
             }
-            override fun onError(error: String) {
-                println("Error in getAllProfessions :" + error)
-            }
-        })
+        )
 
         auctionDataService.getAllServers(applicationContext, object : AuctionDataService.RealmListListener {
             override fun onResponse(response: Map<String, Int>) {
@@ -145,7 +156,6 @@ class AddRecipeActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
             }
-
         }
 
     }
