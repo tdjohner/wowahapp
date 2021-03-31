@@ -15,7 +15,7 @@ class DetailedView(title: String, reagents: ArrayList<ArrayList<String>>, availa
         for (member in this.reagents){
             entryList.add(DetailedEntries(member))
         }
-        entryList.add(DetailedEntries(arrayListOf<String>("Available","Reagent Name", "Cost"),true))
+        entryList.add(DetailedEntries(arrayListOf<String>("Reagent Name","Available", "Cost"),true))
         for (member in this.available){
             entryList.add(DetailedEntries(member))
         }

@@ -17,6 +17,12 @@ class CustomAdapterDetails(private val data: List<DetailedEntries>) :
             val second = view.findViewById<TextView>(R.id.secondSpace)
             val third = view.findViewById<TextView>(R.id.thirdSpace)
             val message = entry.getMessage()
+            first.setTypeface(null,Typeface.NORMAL)
+            second.setTypeface(null,Typeface.NORMAL)
+            third.setTypeface(null,Typeface.NORMAL)
+            first.text=""
+            second.text=""
+            third.text=""
             if (entry.isHeader()){
                 first.setTypeface(null, Typeface.BOLD)
                 second.setTypeface(null, Typeface.BOLD)
