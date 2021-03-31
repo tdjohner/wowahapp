@@ -32,58 +32,27 @@ class CustomAdapter(private val data: List<RecipeModel>) :
             averageSalePrice.text = recipe.getAverageSalePrice()
             salePrice.text=recipe.getSalePrice()
             link.text=recipe.getLink()
-            var positive=Color.argb(255,0,255,0)
-            val negative=Color.argb(255,255,0,0)
-            val neutral=Color.argb(255,255,255, 255)
-            var color: Int
-            /*when {
-                diff>=3.0f -> {
-                    color= positive
-                }
-                diff>=2.0f -> {
-                    diff -= 2.0f
-                    color = (positive/2+((positive-positive/2)*diff)).toInt()
-                }
-                diff>=1.0f -> {
-                    diff-=1.0f
-                    color = (neutral+((positive/2-neutral)*diff)).toInt()
-                }
-                diff>=0.5f -> {
-                    diff=diff*2.0f-1.0f
-                    color = (negative/2+((neutral-negative/2)*diff)).toInt()
-                }
-                diff>=0.333f ->{
-                    diff=diff*6.0f-2.0f
-                    color = (negative+((negative/2-negative)*diff)).toInt()
-                }
-                else -> {
-                    color=negative
-                }
-            }*/
+            var red = 0
+            var blue = 0
+            var green = 0
             when {
                 diff>=3.0f -> {
-                    color= positive
-                }
-                diff>=2.0f -> {
-                    diff -= 2.0f
-                    color = (positive/1.5+((positive-positive/1.5)*diff)).toInt()
+                    green = 255
                 }
                 diff>=0.0f -> {
-                    diff/=2.0f
-                    color = (neutral+((positive/1.5-neutral)*diff)).toInt()
+                    diff /= 3.0f
+                    green = (255*diff).toInt()
                 }
-                diff>=-2.0f -> {
-                    diff= diff/2.0f +1.0f
-                    color = (neutral+((negative/1.5-neutral)*diff)).toInt()
-                }
-                diff>=-3.0f ->{
-                    diff+=3.0f
-                    color = (negative+((negative/1.5-negative)*diff)).toInt()
+                diff >=-3.0f -> {
+                    diff = -diff
+                    red = (255*diff).toInt()
                 }
                 else -> {
-                    color=negative
+                    red = 255
                 }
+
             }
+            val color = Color.argb(255,red,green, blue)
             link.setTextColor(color)
             Glide.with(view)
                 .load(recipe.getImageLink())

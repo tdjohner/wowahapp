@@ -27,23 +27,27 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
             averageSalePrice.text = recipe.getAverageSalePrice()
             salePrice.text=recipe.getSalePrice()
             link.text=recipe.getLink()
-            var positive= Color.argb(255,0,255,0)
-            val negative= Color.argb(255,255,0,0)
-            var color: Int
+            var red = 0
+            var blue = 0
+            var green = 0
             when {
-                diff>=2.0f -> {
-                    color= positive
+                diff>=3.0f -> {
+                    green = 255
                 }
-                diff>=-2.0f -> {
-                    val blue = ((2.0f-diff.absoluteValue)*127).toInt()
-                    diff=diff/2.0f+1.0f
-                    color = (positive+((positive-negative)*diff)).toInt()
-                    color += Color.argb(255,0,0,blue)
+                diff>=0.0f -> {
+                    diff /= 3.0f
+                    green = (255*diff).toInt()
+                }
+                diff >=-3.0f -> {
+                    diff = -diff
+                    red = (255*diff).toInt()
                 }
                 else -> {
-                    color=negative
+                    red = 255
                 }
+
             }
+            val color = Color.argb(255,red,green, blue)
             link.setTextColor(color)
             Glide.with(view)
                 .load(recipe.getImageLink())
