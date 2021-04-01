@@ -64,74 +64,8 @@ class MainActivity : AppCompatActivity() {
                 .build(this)
 
         startActivity(lock.newIntent(this))
-        //sendLoginRequest ()
-//
-//                // https://stackoverflow.com/questions/47298935/handling-enter-key-on-edittext-kotlin-android
-//                editPassword . setOnKeyListener (View.OnKeyListener { _, keyCode, event ->
-//            if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
-//
-//                return@OnKeyListener true
-//            }
-//            false
-//        })
-//
-//                registerUser = findViewById < TextView >(R.id.registerTextView) as TextView
-//                registerUser . setOnClickListener {
-//            val registerUserActivityIntent = Intent(this, RegisterUserActivity::class.java)
-//            startActivity(registerUserActivityIntent)
-//        }
-//                forgotPass = findViewById < TextView >(R.id.forgotPassTextView) as TextView
-//                forgotPass . setOnClickListener {
-//            val forgotPassActivityIntent = Intent(this, ForgotPass::class.java)
-//            startActivity(forgotPassActivityIntent)
-//        }
-//
-//                scrollingBackground ()
-        //sendJson sends a json object to our backend
-        //sendJson()
     }
 
-    // Validate user using Auth0 service
-//    private fun sendLoginRequest() {
-//        WebAuthProvider.login(account)
-//                .withScheme(getString(R.string.com_auth0_scheme))
-//                .withScope("openid profile email")
-//                // Launch the authentication passing the callback where the results will be received
-//                .start(this,  object : Callback<Credentials, AuthenticationException> {
-//                    // Called when there is an authentication failure
-//                    @RequiresApi(Build.VERSION_CODES.O)
-//                    override fun onFailure(error: AuthenticationException) {
-//                        Toast.makeText(this@MainActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
-//
-//                        // Vibrate the device
-//                        val v = getSystemService(VIBRATOR_SERVICE) as Vibrator
-//                        if (v.hasVibrator()) {
-//                            val vEffect: VibrationEffect = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
-//                            v.cancel()
-//                            v.vibrate(vEffect)
-//                        }
-//
-//                        // Exit the Application
-//                        moveTaskToBack(true)
-//                        exitProcess(-1)
-//                    }
-//
-//                    // Called when authentication completed successfully
-//                    override fun onSuccess(result: Credentials) {
-//                        // Get the access token from the credentials object.
-//                        // This can be used to call APIs
-//                        val accessToken = result.accessToken
-//
-//                        val homeIntent = Intent(this@MainActivity, HomeActivity::class.java)
-//                        startActivity(homeIntent)
-//
-//                        Toast.makeText(this@MainActivity, "Logged in", Toast.LENGTH_SHORT).show()
-//                        showUserProfile(accessToken)
-//
-//                    }
-//                })
-//    }
-//
     private fun showUserProfile(accessToken: String) {
         var client = AuthenticationAPIClient(account)
 

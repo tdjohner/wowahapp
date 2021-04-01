@@ -142,38 +142,6 @@ class HomeActivity : AppCompatActivity() {
 
         intent = Intent(this@HomeActivity, MainActivity::class.java)
         startActivity(intent)
-//        WebAuthProvider.logout(account)
-//            .withScheme(getString(R.string.com_auth0_scheme))
-//            .start(this, object: Callback<Void?, AuthenticationException> {
-//                @RequiresApi(Build.VERSION_CODES.O)
-//                override fun onSuccess(result: Void?) {
-//                    cachedCredentials = null
-//                    cachedUserProfile = null
-//
-//                    Toast.makeText(this@HomeActivity, "Logged out", Toast.LENGTH_SHORT).show()
-//
-//                    // Go back to the main page
-//                    intent = Intent(this@HomeActivity, MainActivity::class.java)
-//                    startActivity(intent)
-//                }
-//
-//                @RequiresApi(Build.VERSION_CODES.O)
-//                override fun onFailure(error: AuthenticationException) {
-//                    // Vibrate ethe device
-//                    val v = getSystemService(VIBRATOR_SERVICE) as Vibrator
-//                    if (v.hasVibrator()) {
-//                        val vEffect: VibrationEffect = VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE)
-//                        v.cancel()
-//                        v.vibrate(vEffect)
-//                    }
-//
-//                    Toast.makeText(this@HomeActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
-//
-////                    // Exit the Application
-////                    moveTaskToBack(true)
-////                    exitProcess(-1)
-//                }
-//            })
     }
 
     private fun sendJsonObject(){
