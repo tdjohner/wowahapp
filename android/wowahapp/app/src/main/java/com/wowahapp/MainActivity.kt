@@ -2,6 +2,8 @@ package com.wowahapp
 
 import android.animation.ValueAnimator
 import android.content.Intent
+import android.hardware.biometrics.BiometricPrompt
+import android.media.session.MediaSessionManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -12,10 +14,12 @@ import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import android.widget.Toast
 import android.os.Vibrator
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.auth0.android.Auth0
 import com.auth0.android.authentication.AuthenticationAPIClient
 import com.auth0.android.authentication.AuthenticationException
+import com.auth0.android.callback.BaseCallback
 import com.auth0.android.callback.Callback
 import com.auth0.android.lock.AuthenticationCallback
 import com.auth0.android.provider.WebAuthProvider
@@ -54,9 +58,6 @@ class MainActivity : AppCompatActivity() {
         //val builder : Lock.Builder = Lock.newBuilder(account, callback)
         lock = newBuilder(account, callback)
                 .withAudience("https://wowahapp.us.auth0.com/userinfo")
-                .closable(true)
-                //builder.withScope("openid profile email")
-                //.allowedConnections(Arrays.asList("google-oauth2"))
                 //.withScheme(getString(R.string.com_auth0_scheme))
                 .withAuthStyle("My Theme", R.style.Lock_Theme_AuthStyle)
 
@@ -131,24 +132,23 @@ class MainActivity : AppCompatActivity() {
 //                })
 //    }
 //
-//    private fun showUserProfile(accessToken: String) {
-//        var client = AuthenticationAPIClient(account)
-//
-//        // With the access token, call `userInfo` and get the profile from Auth0.
-//        client.userInfo(accessToken)
-//                .start(object : Callback<UserProfile, AuthenticationException> {
-//                    override fun onFailure(error: AuthenticationException) {
-//                        Toast.makeText(this@MainActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
-//                    }
-//
-//                    override fun onSuccess(result: UserProfile) {
-//                        // We have the user's profile!
-//                        val email = result.email
-//                        val name = result.nickname
-//                        Toast.makeText(this@MainActivity, email + "\n" + name, Toast.LENGTH_SHORT).show()
-//                    }
-//                })
-//    }
+    private fun showUserProfile(accessToken: String) {
+        var client = AuthenticationAPIClient(account)
+
+        // With the access token, call `userInfo` and get the profile from Auth0.
+        client.userInfo(accessToken)
+                .start(object : BaseCallback<UserProfile, AuthenticationException> {
+                    override fun onSuccess(payload: UserProfile?) {
+                        // We have the user's profile!
+                        val email = payload?.email
+                        val name = payload?.nickname
+                    }
+
+                    override fun onFailure(error: AuthenticationException) {
+                        Toast.makeText(this@MainActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
+                    }
+                })
+    }
 
     // login wallpaper moving background from https://stackoverflow.com/questions/36894384/android-move-background-continuously-with-animation
     private fun scrollingBackground() {
@@ -170,21 +170,16 @@ class MainActivity : AppCompatActivity() {
         animator.start()
     }
 
-//    override fun onDestroy() {
-//        super.onDestroy()
-//        // Your own Activity code
-//        if (lock != null) {
-//            lock.onDestroy(this)
-//        }
-//        //lock = null
-//    }
-
     private val callback : LockCallback =  object : AuthenticationCallback() {
         override fun onAuthentication(credentials: Credentials) {
             //Authenticated
-            Toast.makeText(this@MainActivity, "Logged in" + credentials.accessToken, Toast.LENGTH_SHORT).show()
+            val accessToken = credentials.accessToken
+            Toast.makeText(this@MainActivity, "Logged in", Toast.LENGTH_SHORT).show()
             val homeIntent = Intent(this@MainActivity, HomeActivity::class.java)
             startActivity(homeIntent)
+            if (accessToken != null) {
+                showUserProfile(accessToken)
+            }
         }
 
         override fun onCanceled() {
@@ -195,7 +190,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onError(error: LockException) {
-
+            Toast.makeText(this@MainActivity, "An error occurred. Please try again.", Toast.LENGTH_SHORT).show()
         }
     }
 }
