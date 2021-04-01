@@ -11,6 +11,8 @@ class DetailedView(title: String, reagents: ArrayList<ArrayList<String>>, availa
     }
     fun getEntries(): ArrayList<DetailedEntries>{
         val entryList: ArrayList<DetailedEntries> = ArrayList()
+        this.reagents.sortBy { it[0] }
+        this.available.sortBy{ it[2] }
         entryList.add(DetailedEntries(arrayListOf<String>("Reagents"), true))
         for (member in this.reagents){
             entryList.add(DetailedEntries(member))

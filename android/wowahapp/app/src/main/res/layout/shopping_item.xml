@@ -5,41 +5,52 @@
     android:layout_marginTop="4dp"
     android:layout_marginLeft="4dp"
     android:layout_marginRight="4dp"
+    android:paddingBottom="5dp"
+    android:paddingEnd="5dp"
+    android:paddingStart="5dp"
     android:background="@drawable/textviewhighlight">
     <TextView
         android:id="@+id/recipeName"
+        android:ellipsize="end"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
+        android:maxLines="1"
         android:textColor="#FFFFFF"
         android:textSize="20sp" />
     <TextView
         android:id="@+id/averageSalePrice"
+        android:ellipsize="end"
         android:layout_width="match_parent"
         android:layout_height="25dp"
         android:layout_alignParentEnd="true"
         android:layout_below="@id/recipeName"
+        android:maxLength="20"
         android:textColor="#FFFFFF"
         android:gravity="end"
         android:textSize="20sp" />
     <TextView
         android:id="@+id/salePrice"
+        android:ellipsize="end"
         android:layout_width="match_parent"
         android:layout_height="25dp"
         android:layout_alignParentStart="true"
         android:layout_below="@id/averageSalePrice"
+        android:maxLength="20"
         android:textColor="#FFFFFF"
         android:gravity="end"
         android:textSize="20sp" />
     <TextView
         android:id="@+id/link"
+        android:ellipsize="end"
         android:layout_width="match_parent"
         android:layout_height="25dp"
         android:layout_alignParentStart="true"
         android:layout_below="@id/salePrice"
         android:layout_marginBottom="2dp"
-        android:textColor="#F040f0"
+        android:maxLength="20"
+        android:textColor="#FFFFFF"
         android:gravity="end"
         android:textSize="20sp" />
     <CheckBox
@@ -53,8 +64,6 @@
         android:id="@+id/itemImage"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginBottom="10dp"
-        android:layout_marginStart="2dp"
         android:layout_alignParentStart="true"
         android:layout_below="@id/recipeName"/>
 
