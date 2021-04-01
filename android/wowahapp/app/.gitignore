@@ -1,7 +1,7 @@
 /build
 *.iml
 .gradle
-/local.properties
+/android/local.properties
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
@@ -13,7 +13,7 @@
 .externalNativeBuild
 .cxx
 build.gradle
-gradle.properties
-/gradlew.bat
-local.properties
+../../gradle.properties
+/android/gradlew.bat
+../../local.properties
 settings.gradle
