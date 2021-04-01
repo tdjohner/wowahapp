@@ -36,11 +36,15 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
                 }
                 diff>=0.0f -> {
                     diff /= 3.0f
-                    green = (255*diff).toInt()
+                    green=255
+                    red = ((255-255*diff).toInt())
+                    blue = ((255-255*diff).toInt())
                 }
                 diff >=-3.0f -> {
-                    diff = -diff
-                    red = (255*diff).toInt()
+                    diff = (-diff)/3.0f
+                    red=255
+                    green = ((255-255*diff).toInt())
+                    blue = ((255-255*diff).toInt())
                 }
                 else -> {
                     red = 255

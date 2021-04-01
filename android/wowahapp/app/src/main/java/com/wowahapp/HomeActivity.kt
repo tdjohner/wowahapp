@@ -131,11 +131,10 @@ class HomeActivity : AppCompatActivity() {
         val title = view.findViewById<TextView>(R.id.recipeName)
         title.text=detailedView.getTitle()
 
-        val popUp = PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT)
+        val popUp = PopupWindow(view, ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT)
         popUp.isOutsideTouchable=true
         popUp.isFocusable=true
         popUp.showAtLocation(view,Gravity.CENTER,0,0)
-        Toast.makeText(this@HomeActivity, detailedEntries[2].getMessage()[0],Toast.LENGTH_SHORT).show()
     }
 
     private fun logout() {
