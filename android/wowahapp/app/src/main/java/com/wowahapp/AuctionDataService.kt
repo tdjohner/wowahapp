@@ -52,6 +52,9 @@ class AuctionDataService {
                     var requirements = ArrayList<ArrayList<String>>()
                     var listings = ArrayList<ArrayList<String>>()
                     var alreadyAdded = ArrayList<String>()
+
+                    //sort response
+
                     for (i in 0 until response.length()) {
                         val reagentName = response.getJSONObject(i).getString("Name")
                         if (reagentName !in alreadyAdded) {

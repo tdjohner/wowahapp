@@ -63,7 +63,7 @@ class HomeActivity : AppCompatActivity() {
         }
 
         val recyclerView: RecyclerView = findViewById(R.id.recyclerView3)
-        customAdapter = CustomAdapter(itemsList)
+        customAdapter = CustomAdapter(itemsList, application as CustomApplication)
         val layoutManager = LinearLayoutManager(applicationContext)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = customAdapter
@@ -71,6 +71,7 @@ class HomeActivity : AppCompatActivity() {
         auctionDataService.getSubbedRecipes((application as CustomApplication).getUserName(), applicationContext, object: AuctionDataService.RecipeModelListener {
             override fun onResponse(response: ArrayList<RecipeModel>) {
                 for (r in response) {
+
                     customAdapter.addItem(r)
                 }
             }

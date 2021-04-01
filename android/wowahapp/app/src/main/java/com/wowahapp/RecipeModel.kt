@@ -20,6 +20,10 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
         this.realmID = realmID!!
     }
 
+    fun deepCopy(): RecipeModel{
+        return RecipeModel(this.recipeName, this.averageSalePrice, this.salePrice, this.link, this.imageLink, this.realmID)
+    }
+
     fun getRealmID(): Int?{
         return realmID
     }
@@ -68,7 +72,6 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
         var diff: Float = 0.0F
         if(this.link.toFloat()!=0.0F){
             diff=(this.salePrice.toFloat()-this.link.toFloat())/this.salePrice.toFloat()
-            //var diff=this.link.toFloat() //to test values directly
         }
         return diff
     }

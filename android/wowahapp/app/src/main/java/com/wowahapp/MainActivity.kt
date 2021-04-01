@@ -106,8 +106,7 @@ class MainActivity : AppCompatActivity() {
                                 startActivity(homeIntent)
                             }
                         })
-                        Toast.makeText(this@MainActivity, "Logged in", Toast.LENGTH_SHORT).show()
-                        showUserProfile(accessToken)
+                        //showUserProfile(accessToken)
                     }
                 })
     }

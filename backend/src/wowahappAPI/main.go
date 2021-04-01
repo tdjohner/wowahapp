@@ -43,6 +43,12 @@ type RecipeModel struct {
 	Realm int
 }
 
+type SubbedItem struct {
+	RealmID	 	string `realmID`
+	RecipeName  string `json:recipeName`
+	Username 	string `json:username`
+}
+
 func handleRequest() {
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -55,6 +61,7 @@ func handleRequest() {
 	router.HandleFunc("/itemlisting/{itemName}/{realmID}", getItemListing)
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
 	router.HandleFunc("/subscriberecipe/", createSubbedItem).Methods("POST")
+	router.HandleFunc("/unsubrecipe/", removeSubbedItem).Methods("POST")
 	router.HandleFunc("/recipebasecost/{recipeName}/{realmID}", getRecipeBaseCost)
 	router.HandleFunc("/allservers/", getServers)
 
@@ -193,19 +200,11 @@ func getUsersSubs(username string) []RecipeSub {
 // Create database record example
 func createSubbedItem(res http.ResponseWriter, req *http.Request) {
 
-	type SubbedItem struct {
-		RealmID	 	string `realmID`
-		RecipeName  string `json:recipeName`
-		Username 	string `json:username`
-	}
-
 	var newSubbedItem SubbedItem
 
 	// infers body to byte[] stream
 	body, _ := ioutil.ReadAll(req.Body)
-	fmt.Println(string(body))
 	json.Unmarshal(body, &newSubbedItem)
-	fmt.Printf("realmID: %s, userID: %s, recipeName: %s", newSubbedItem.RealmID, newSubbedItem.Username, newSubbedItem.RecipeName)
 	//Insert new SubbedItem to tblSubbedItems
 
 	db, err := sql.Open("mysql", dbh.GetConnectionString())
@@ -215,9 +214,32 @@ func createSubbedItem(res http.ResponseWriter, req *http.Request) {
 	convertedRealmID, _ := strconv.Atoi(newSubbedItem.RealmID)
 
 	_, err = db.Exec("INSERT INTO tbl_recipe_sub(recipeName,username,realmID) VALUES (?,?,?)", newSubbedItem.RecipeName, newSubbedItem.Username, convertedRealmID)
-	//sqlInsert := "INSERT INTO tblSubbedItems(itemId, userId) VALUES ($1, $2"
+
 	defer db.Close()
 }
+
+func removeSubbedItem(res http.ResponseWriter, req *http.Request) {
+
+	var unsubRecipe SubbedItem
+
+	body, _ := ioutil.ReadAll(req.Body)
+	json.Unmarshal(body, &unsubRecipe)
+	convertedRealmID, _ := strconv.Atoi(unsubRecipe.RealmID)
+
+
+	fmt.Println("removeSubbedItem endpoint hit!\n")
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
+	defer db.Close()
+
+	_, err = db.Exec("DELETE FROM tbl_recipe_sub WHERE recipeName = ? and username = ? and realmID = ?", unsubRecipe.RecipeName, unsubRecipe.Username, convertedRealmID)
+
+	json.NewEncoder(res).Encode("{\"success\": \"true\"}")
+
+}
+
 
 func getProfessions(res http.ResponseWriter, req *http.Request) {
 
