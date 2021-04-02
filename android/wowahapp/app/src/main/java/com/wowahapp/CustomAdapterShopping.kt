@@ -28,6 +28,7 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
             salePrice.text=recipe.getSalePrice()
             link.text=recipe.getLink()
             link.setTextColor(getColor(profitability))
+
             Glide.with(view)
                 .load(recipe.getImageLink())
                 .into(itemImage)
