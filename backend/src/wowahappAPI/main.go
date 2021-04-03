@@ -18,6 +18,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func main() {
@@ -29,6 +30,25 @@ type Recipe struct {
 	Name string `json:"name"`
 }
 
+type RecipeSub struct {
+	ID  int    `json:"id"`
+	Name string `json:"name"`
+	Realm int `json:"realmID"`
+}
+
+type RecipeModel struct {
+	Name string
+	SalePrice int
+	Cost int
+	Realm int
+}
+
+type SubbedItem struct {
+	RealmID	 	string `realmID`
+	RecipeName  string `json:recipeName`
+	Username 	string `json:username`
+}
+
 func handleRequest() {
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -36,9 +56,12 @@ func handleRequest() {
 	router.HandleFunc("/allrecipes/{realmID}", getAllRecipes)
 	router.HandleFunc("/allprofessions/", getProfessions)
 	router.HandleFunc("/allexpansions/", getExpansions)
+	router.HandleFunc("/detailedlisting/{recipeName}/{realmID}", getDetailedListing)
+	router.HandleFunc("/getsubbedrecipes/{username}", getSubbedRecipes)
 	router.HandleFunc("/itemlisting/{itemName}/{realmID}", getItemListing)
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
-	router.HandleFunc("/createuser/", createSubbedItem).Methods("POST")
+	router.HandleFunc("/subscriberecipe/", createSubbedItem).Methods("POST")
+	router.HandleFunc("/unsubrecipe/", removeSubbedItem).Methods("POST")
 	router.HandleFunc("/recipebasecost/{recipeName}/{realmID}", getRecipeBaseCost)
 	router.HandleFunc("/allservers/", getServers)
 
@@ -48,6 +71,18 @@ func handleRequest() {
 func landingPage(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(res, "Hello World: Landing Page")
 	fmt.Println("Endpoint: Landing Page")
+}
+
+func getDetailedListing(res http.ResponseWriter, req *http.Request) {
+
+	vars := mux.Vars(req)
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
+	defer db.Close()
+	reagentDetails := dbh.GetDetailedBreakdown(vars["recipeName"], vars["realmID"], db )
+	json.NewEncoder(res).Encode(reagentDetails)
 }
 
 func getItemListing(res http.ResponseWriter, req *http.Request) {
@@ -79,8 +114,6 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 	var recipes []Recipe
 	vars := mux.Vars(req)
 
-	fmt.Println("allrecipes endpoint called")
-
 	connectionString := dbh.GetConnectionString()
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
@@ -89,7 +122,6 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 	defer db.Close()
 
 	q := "SELECT distinct rcp.id, rcp.name FROM tbl_recipes rcp join tbl_item itm on rcp.name = itm.name join tbl_auctions_current auct on auct.itemID = itm.id where auct.cnctdRealmID = " +vars["realmID"] + ";"
-	fmt.Println(q)
 	result, err := db.Query(q)
 	if err != nil {
 		fmt.Println("Error writing to database: " + err.Error())
@@ -101,37 +133,113 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 			result.Scan(&r.ID, &r.Name)
 			recipes = append(recipes, r)
 		}
-
 		json.NewEncoder(res).Encode(recipes)
 	}
+}
+
+func getSubbedRecipes(res http.ResponseWriter, req *http.Request) {
+
+	vars := mux.Vars(req)
+	recipeList := getUsersSubs(vars["username"])
+	var recipeModels []RecipeModel
+
+	connectionString := dbh.GetConnectionString()
+	db, err := sql.Open("mysql", connectionString)
+	if err != nil {
+		fmt.Println("Connection to database failed: " + err.Error())
+	}
+	defer db.Close()
+
+	for i := range recipeList {
+
+		var newRecipe RecipeModel
+		convertedRealmID := strconv.Itoa(recipeList[i].Realm)
+		listing := dbh.GetAuctionByName(recipeList[i].Name, convertedRealmID, db)
+
+		newRecipe.Name = recipeList[i].Name
+		newRecipe.SalePrice = listing.Buyout + listing.UnitPrice
+		newRecipe.Cost = dbh.RecipeBaseCost(db, recipeList[i].Name, convertedRealmID)
+		newRecipe.Realm = recipeList[i].Realm
+		recipeModels = append(recipeModels, newRecipe)
+	}
+	json.NewEncoder(res).Encode(recipeModels)
+}
+
+func getUsersSubs(username string) []RecipeSub {
+
+	var recipes []RecipeSub
+
+	connectionString := dbh.GetConnectionString()
+	db, err := sql.Open("mysql", connectionString)
+	if err != nil {
+		fmt.Println("Connection to database failed: " + err.Error())
+	}
+	defer db.Close()
+
+	q := 	"select distinct rcp.id, rcp.name, sub.realmID " +
+		"FROM tbl_recipes rcp " +
+		"join tbl_item itm on rcp.name = itm.name " +
+		"join tbl_auctions_current auct on auct.itemID = itm.id " +
+		"join tbl_recipe_sub sub on sub.recipeName = rcp.name " +
+		"and sub.userName = \"" + username + "\";"
+
+	result, err := db.Query(q)
+	if err != nil {
+		fmt.Println("Error writing to database: " + err.Error())
+	} else {
+		defer result.Close()
+		for result.Next() {
+			var r RecipeSub
+			result.Scan(&r.ID, &r.Name, &r.Realm)
+			recipes = append(recipes, r)
+		}
+	}
+	return recipes
 }
 
 // Create database record example
 func createSubbedItem(res http.ResponseWriter, req *http.Request) {
 
-	type SubbedItem struct {
-		itemID    int
-		userId 	  int
-	}
-
 	var newSubbedItem SubbedItem
 
 	// infers body to byte[] stream
 	body, _ := ioutil.ReadAll(req.Body)
-	fmt.Println(string(body))
 	json.Unmarshal(body, &newSubbedItem)
-	fmt.Printf("itemID: %s, userID: %s", newSubbedItem.itemID, newSubbedItem.userId)
 	//Insert new SubbedItem to tblSubbedItems
 
 	db, err := sql.Open("mysql", dbh.GetConnectionString())
 	if nil != err {
 		fmt.Println("Error connecting to database: ", err.Error())
 	}
-	_, err = db.Exec("INSERT INTO tblSubbedItems(itemId,userId) VALUES (?,?)", newSubbedItem.userId, newSubbedItem.itemID)
-	//sqlInsert := "INSERT INTO tblSubbedItems(itemId, userId) VALUES ($1, $2"
+	convertedRealmID, _ := strconv.Atoi(newSubbedItem.RealmID)
+
+	_, err = db.Exec("INSERT INTO tbl_recipe_sub(recipeName,username,realmID) VALUES (?,?,?)", newSubbedItem.RecipeName, newSubbedItem.Username, convertedRealmID)
+
+	defer db.Close()
+}
+
+func removeSubbedItem(res http.ResponseWriter, req *http.Request) {
+
+	var unsubRecipe SubbedItem
+
+	body, _ := ioutil.ReadAll(req.Body)
+	json.Unmarshal(body, &unsubRecipe)
+	convertedRealmID, _ := strconv.Atoi(unsubRecipe.RealmID)
+
+
+	fmt.Println("removeSubbedItem endpoint hit!\n")
+	db, err := sql.Open("mysql", dbh.GetConnectionString())
+	if nil != err {
+		fmt.Println("Error connecting to database: ", err.Error())
+	}
 	defer db.Close()
 
+	_, err = db.Exec("DELETE FROM tbl_recipe_sub WHERE recipeName = ? and username = ? and realmID = ?", unsubRecipe.RecipeName, unsubRecipe.Username, convertedRealmID)
+
+	json.NewEncoder(res).Encode("{\"success\": \"true\"}")
+
 }
+
 
 func getProfessions(res http.ResponseWriter, req *http.Request) {
 
@@ -163,7 +271,6 @@ func getServers(res http.ResponseWriter, req *http.Request) {
 	defer db.Close()
 	servers := dbh.GetSupportedServers(db)
 	json.NewEncoder(res).Encode(servers)
-
 }
 
 func getRecipeBaseCost(res http.ResponseWriter, req *http.Request) {

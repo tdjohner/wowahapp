@@ -3,16 +3,16 @@ package com.wowahapp
 import android.animation.ValueAnimator
 import android.content.Intent
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.KeyEvent
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import android.widget.Toast
-import android.os.Vibrator
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import com.auth0.android.Auth0
 import com.auth0.android.authentication.AuthenticationAPIClient
 import com.auth0.android.authentication.AuthenticationException
@@ -20,8 +20,6 @@ import com.auth0.android.callback.Callback
 import com.auth0.android.provider.WebAuthProvider
 import com.auth0.android.result.Credentials
 import com.auth0.android.result.UserProfile
-import kotlinx.android.synthetic.main.activity_main.*
-
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlin.system.exitProcess
 
@@ -46,12 +44,6 @@ class MainActivity : AppCompatActivity() {
         editPassword.setOnKeyListener(View.OnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
 
-                // For now we just immediately go to the Home Activity
-                val homeIntent = Intent(this, HomeActivity::class.java)
-                startActivity(homeIntent)
-
-                //hash username into var
-                //hash password into var
                 sendLoginRequest()
                 return@OnKeyListener true
             }
@@ -70,8 +62,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         scrollingBackground()
-        //sendJson sends a json object to our backend
-        //sendJson()
     }
 
     // Validate user using Auth0 service
@@ -105,12 +95,18 @@ class MainActivity : AppCompatActivity() {
                         // This can be used to call APIs
                         val accessToken = result.accessToken
 
-                        val homeIntent = Intent(this@MainActivity, HomeActivity::class.java)
-                        startActivity(homeIntent)
-
-                        Toast.makeText(this@MainActivity, "Logged in", Toast.LENGTH_SHORT).show()
-                        showUserProfile(accessToken)
-
+                        // save username to global
+                        AuthenticationAPIClient(account).userInfo(accessToken).start(object: Callback<UserProfile, AuthenticationException> {
+                            override fun onFailure(error: AuthenticationException) {
+                                println("Error establishing uername: " + error)
+                            }
+                            override fun onSuccess(result: UserProfile) {
+                                result.email?.let { (application as CustomApplication).setUserName(it) }
+                                val homeIntent = Intent(this@MainActivity, HomeActivity::class.java)
+                                startActivity(homeIntent)
+                            }
+                        })
+                        //showUserProfile(accessToken)
                     }
                 })
     }
@@ -124,7 +120,6 @@ class MainActivity : AppCompatActivity() {
                     override fun onFailure(error: AuthenticationException) {
                         Toast.makeText(this@MainActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
                     }
-
                     override fun onSuccess(result: UserProfile) {
                         // We have the user's profile!
                         val email = result.email
