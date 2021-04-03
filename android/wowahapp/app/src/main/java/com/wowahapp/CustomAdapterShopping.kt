@@ -22,37 +22,13 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
             val link = view.findViewById<TextView>(R.id.link)
             val toggleButton = view.findViewById<CheckBox>(R.id.toggleItem)
             val itemImage = view.findViewById<ImageView>(R.id.itemImage)
-            var diff = recipe.getDiff()
+            val profitability = recipe.getProfitability()
             recipeName.text = recipe.getRecipeName()
             averageSalePrice.text = recipe.getAverageSalePrice()
             salePrice.text=recipe.getSalePrice()
             link.text=recipe.getLink()
-            var red = 0
-            var blue = 0
-            var green = 0
-            when {
-                diff>=3.0f -> {
-                    green = 255
-                }
-                diff>=0.0f -> {
-                    diff /= 3.0f
-                    green=255
-                    red = ((255-255*diff).toInt())
-                    blue = ((255-255*diff).toInt())
-                }
-                diff >=-3.0f -> {
-                    diff = (-diff)/3.0f
-                    red=255
-                    green = ((255-255*diff).toInt())
-                    blue = ((255-255*diff).toInt())
-                }
-                else -> {
-                    red = 255
-                }
+            link.setTextColor(getColor(profitability))
 
-            }
-            val color = Color.argb(255,red,green, blue)
-            link.setTextColor(color)
             Glide.with(view)
                 .load(recipe.getImageLink())
                 .into(itemImage)
@@ -63,11 +39,11 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
                 callback?.onItemClick(it, adapterPosition,recipeList[adapterPosition])
             }
         }
-
     }
 
     @NonNull
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
+        recipeList.sortByDescending { it.getProfitability() }
         val itemView = LayoutInflater.from(parent.context)
             .inflate(R.layout.shopping_item, parent, false)
         return MyViewHolder(itemView)
@@ -100,6 +76,34 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
     }
     fun setOnClick(click: RecyclerviewCallbacks<RecipeModel>) {
         callback=click
+    }
+    fun getColor(diff: Float): Int {
+        var dif = diff
+        var red = 0
+        var blue = 0
+        var green = 0
+        when {
+            dif>=3.0f -> {
+                green = 255
+            }
+            dif>=0.0f -> {
+                dif /= 3.0f
+                green=255
+                red = ((255-255*dif).toInt())
+                blue = ((255-255*dif).toInt())
+            }
+            dif >=-3.0f -> {
+                dif = (-dif)/3.0f
+                red=255
+                green = ((255-255*dif).toInt())
+                blue = ((255-255*dif).toInt())
+            }
+            else -> {
+                red = 255
+            }
+
+        }
+        return Color.argb(255,red,green, blue)
     }
 
 }

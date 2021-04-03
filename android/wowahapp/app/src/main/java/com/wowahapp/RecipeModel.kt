@@ -9,6 +9,7 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
     private var link: String
     private var isSelected: Boolean
     private var imageLink: String
+    private var profitability: Float
     init{
         this.recipeName = recipeName!!
         this.averageSalePrice = averageSalePrice!!
@@ -16,6 +17,7 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
         this.link = link!!
         this.isSelected = false
         this.imageLink = imageLink!!
+        this.profitability=this.getDiff()
     }
 
     fun getRecipeName(): String?{
@@ -53,6 +55,9 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
     }
     fun setImageLink(imageLink: String?){
         this.imageLink = imageLink!!
+    }
+    fun getProfitability(): Float{
+        return profitability
     }
     fun getDiff(): Float{
         var diff: Float = 0.0F
