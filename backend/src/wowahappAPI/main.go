@@ -19,6 +19,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func main() {
@@ -34,6 +35,7 @@ type RecipeSub struct {
 	ID  int    `json:"id"`
 	Name string `json:"name"`
 	Realm int `json:"realmID"`
+	URL string `json:"craftedItemURL"`
 }
 
 type RecipeModel struct {
@@ -41,6 +43,7 @@ type RecipeModel struct {
 	SalePrice int
 	Cost int
 	Realm int
+	URL string
 }
 
 type SubbedItem struct {
@@ -54,6 +57,7 @@ func handleRequest() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", landingPage)
 	router.HandleFunc("/allrecipes/{realmID}", getAllRecipes)
+	router.HandleFunc("/recipes/{realmID}", getRecipes)
 	router.HandleFunc("/allprofessions/", getProfessions)
 	router.HandleFunc("/allexpansions/", getExpansions)
 	router.HandleFunc("/detailedlisting/{recipeName}/{realmID}", getDetailedListing)
@@ -109,6 +113,35 @@ func getItem(res http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(res).Encode(item)
 }
 
+func getRecipes(res http.ResponseWriter, req *http.Request) {
+
+	vars := mux.Vars(req)
+	var recipeModels []RecipeModel
+	realmID := vars["realmID"]
+
+	connectionString := dbh.GetConnectionString()
+	db, err := sql.Open("mysql", connectionString)
+	if err != nil {
+		fmt.Println("Connection to database failed: " + err.Error())
+	}
+	defer db.Close()
+
+	recipeList := allRecipesOnConnectedRealm(vars["realmID"], db)
+
+	for i := range recipeList {
+
+		var newRecipe RecipeModel
+		listing := dbh.GetAuctionByName(recipeList[i], realmID, db)
+
+		newRecipe.Name = recipeList[i]
+		newRecipe.SalePrice = listing.Buyout + listing.UnitPrice
+		newRecipe.Cost = dbh.RecipeBaseCost(db, recipeList[i], realmID)
+		newRecipe.Realm, _ = strconv.Atoi(realmID)
+		recipeModels = append(recipeModels, newRecipe)
+	}
+	json.NewEncoder(res).Encode(recipeModels)
+}
+
 func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 
 	var recipes []Recipe
@@ -160,6 +193,7 @@ func getSubbedRecipes(res http.ResponseWriter, req *http.Request) {
 		newRecipe.SalePrice = listing.Buyout + listing.UnitPrice
 		newRecipe.Cost = dbh.RecipeBaseCost(db, recipeList[i].Name, convertedRealmID)
 		newRecipe.Realm = recipeList[i].Realm
+		newRecipe.URL = recipeList[i].URL
 		recipeModels = append(recipeModels, newRecipe)
 	}
 	json.NewEncoder(res).Encode(recipeModels)
@@ -176,7 +210,7 @@ func getUsersSubs(username string) []RecipeSub {
 	}
 	defer db.Close()
 
-	q := 	"select distinct rcp.id, rcp.name, sub.realmID " +
+	q := 	"select distinct rcp.id, rcp.name, sub.realmID, rcp.craftedItemURL " +
 		"FROM tbl_recipes rcp " +
 		"join tbl_item itm on rcp.name = itm.name " +
 		"join tbl_auctions_current auct on auct.itemID = itm.id " +
@@ -190,11 +224,38 @@ func getUsersSubs(username string) []RecipeSub {
 		defer result.Close()
 		for result.Next() {
 			var r RecipeSub
-			result.Scan(&r.ID, &r.Name, &r.Realm)
+			result.Scan(&r.ID, &r.Name, &r.Realm, &r.URL)
 			recipes = append(recipes, r)
 		}
 	}
 	return recipes
+}
+
+//get all the recipes for the connectedRealm
+func allRecipesOnConnectedRealm(realmID string, db *sql.DB) []string {
+
+	var recipeList []string
+
+	// all recipes on realmID
+	q := "SELECT distinct rcp.name, rcp.id " +
+		"FROM tbl_recipes rcp " +
+		"JOIN tbl_auctions_current auct ON auct.itemID = rcp.craftedItemID " +
+		"WHERE auct.cnctdRealmID = " + realmID
+
+	fmt.Println(q)
+
+	result, err := db.Query(q)
+	if err != nil {
+		fmt.Println("Error reading from database: " + err.Error())
+	} else {
+		for result.Next() {
+			var r Recipe
+			result.Scan(&r.Name, &r.ID)
+			r.Name = strings.ReplaceAll(r.Name, "\"", "")
+			recipeList = append(recipeList, r.Name)
+		}
+	}
+	return recipeList
 }
 
 // Create database record example
@@ -226,7 +287,6 @@ func removeSubbedItem(res http.ResponseWriter, req *http.Request) {
 	json.Unmarshal(body, &unsubRecipe)
 	convertedRealmID, _ := strconv.Atoi(unsubRecipe.RealmID)
 
-
 	fmt.Println("removeSubbedItem endpoint hit!\n")
 	db, err := sql.Open("mysql", dbh.GetConnectionString())
 	if nil != err {
@@ -237,7 +297,6 @@ func removeSubbedItem(res http.ResponseWriter, req *http.Request) {
 	_, err = db.Exec("DELETE FROM tbl_recipe_sub WHERE recipeName = ? and username = ? and realmID = ?", unsubRecipe.RecipeName, unsubRecipe.Username, convertedRealmID)
 
 	json.NewEncoder(res).Encode("{\"success\": \"true\"}")
-
 }
 
 

@@ -70,7 +70,6 @@ class HomeActivity : AppCompatActivity() {
         auctionDataService.getSubbedRecipes((application as CustomApplication).getUserName(), applicationContext, object: AuctionDataService.RecipeModelListener {
             override fun onResponse(response: ArrayList<RecipeModel>) {
                 for (r in response) {
-
                     customAdapter.addItem(r)
                 }
             }

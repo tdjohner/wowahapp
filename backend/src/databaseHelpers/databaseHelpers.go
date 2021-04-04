@@ -96,9 +96,12 @@ func GetDetailedBreakdown(name string, realmID string, db *sql.DB) []ReagentItem
 	return reagents
 }
 
+
 func GetAuctionByName(name string, realmID string, db *sql.DB) AuctionSlice {
 	var auct AuctionSlice
 	q := fmt.Sprintf("SELECT name, unitPrice, buyout FROM tbl_auctions_current auct JOIN tbl_item itm on itm.id = auct.itemID WHERE name = \"%s\" and cnctdRealmID = \"%s\";", name, realmID )
+
+	fmt.Println(q)
 	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error getting Auction Slice from database: ", err.Error())

@@ -3,7 +3,6 @@ package com.wowahapp
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -71,7 +70,6 @@ class MainActivity : AppCompatActivity() {
             val accessToken = credentials.accessToken
             Toast.makeText(this@MainActivity, "Logged in", Toast.LENGTH_SHORT).show()
 
-
             var client = AuthenticationAPIClient(account)
 
             // With the access token, call `userInfo` and get the profile from Auth0.
@@ -87,15 +85,12 @@ class MainActivity : AppCompatActivity() {
                             if (accessToken != null) {
                                 showUserProfile(accessToken)
                             }
-
                         }
                         override fun onFailure(error: AuthenticationException) {
                             Toast.makeText(this@MainActivity, "\"Failure: ${error.getCode()}\"", Toast.LENGTH_SHORT).show()
                         }
                     })
             }
-
-
         }
         override fun onCanceled() {
             //User pressed back
