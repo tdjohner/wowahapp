@@ -43,6 +43,11 @@ class AuctionDataService {
         fun onError(error: String)
     }
 
+    interface RecipeHandleArrayListener {
+        fun onResponse(response: ArrayList<RecipeHandle>)
+        fun onError(error: String)
+    }
+
     fun getListingDetails(recipeName: String, realmID: String, applicationContext: Context, reagentPairListener: ReagentPairListener) {
         val name = recipeName.replace(" ", "%20") // some shady formatting
         val url = "http://192.168.0.24:49155/detailedlisting/" + name + "/" + realmID
@@ -115,17 +120,19 @@ class AuctionDataService {
         return RecipeModel(name, String.format("%.2f",revenue) , String.format("%.2f", cost), net, url, realm)
     }
 
-    fun getAllRecipes(realmID: String, applicationContext : Context, recipeListListener : ArrayListListener ) {
-        val url = "https://wowahapp.com/allrecipes/" + realmID
+    fun getAllRecipes(realmID: String, applicationContext : Context, recipeHandleListener : RecipeHandleArrayListener ) {
+        val url = "http://192.168.0.24:49155/allrecipes/" + realmID
         
-        var recipeList = ArrayList<String>()
+        var recipeList = ArrayList<RecipeHandle>()
         val request = JsonArrayRequest(Request.Method.GET, url, null,
             Response.Listener { response ->
                 try {
-                    for (i in 0 until response.length()) {     //this parsing method is horrendous. TODO
-                        recipeList.add( response.getString(i).split(":")[2].replace("\"","").replace("}", ""))
+                    for (i in 0 until response.length()) {
+                        val obj = response.getJSONObject(i)
+                        val newHandle = RecipeHandle(obj.getString("Name"), obj.getString("URL"))
+                        recipeList.add( newHandle )
                     }
-                    recipeListListener.onResponse(recipeList)
+                    recipeHandleListener.onResponse(recipeList)
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
@@ -223,6 +230,4 @@ class AuctionDataService {
         }, Response.ErrorListener { error -> error.printStackTrace() })
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
-
-
 }

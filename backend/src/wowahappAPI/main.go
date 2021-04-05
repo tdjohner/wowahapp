@@ -27,8 +27,9 @@ func main() {
 }
 
 type Recipe struct {
-	ID  int    `json:"id"`
-	Name string `json:"name"`
+	ID  int    `json:"ID"`
+	Name string `json:"Name"`
+	URL string `json:"URL"`
 }
 
 type RecipeSub struct {
@@ -154,7 +155,8 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 	}
 	defer db.Close()
 
-	q := "SELECT distinct rcp.id, rcp.name FROM tbl_recipes rcp join tbl_item itm on rcp.name = itm.name join tbl_auctions_current auct on auct.itemID = itm.id where auct.cnctdRealmID = " +vars["realmID"] + ";"
+	q := "SELECT distinct rcp.id, rcp.name, rcp.craftedItemURL FROM tbl_recipes rcp join tbl_item itm on rcp.name = itm.name join tbl_auctions_current auct on auct.itemID = itm.id where auct.cnctdRealmID = " +vars["realmID"] + ";"
+	fmt.Println(q)
 	result, err := db.Query(q)
 	if err != nil {
 		fmt.Println("Error writing to database: " + err.Error())
@@ -163,7 +165,7 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 
 		for result.Next() {
 			var r Recipe
-			result.Scan(&r.ID, &r.Name)
+			result.Scan(&r.ID, &r.Name, &r.URL)
 			recipes = append(recipes, r)
 		}
 		json.NewEncoder(res).Encode(recipes)
@@ -182,6 +184,10 @@ func getSubbedRecipes(res http.ResponseWriter, req *http.Request) {
 		fmt.Println("Connection to database failed: " + err.Error())
 	}
 	defer db.Close()
+
+	if len(recipeList) == 0 {
+		json.NewEncoder(res).Encode(make([]string, 0))
+	}
 
 	for i := range recipeList {
 
@@ -242,8 +248,6 @@ func allRecipesOnConnectedRealm(realmID string, db *sql.DB) []string {
 		"JOIN tbl_auctions_current auct ON auct.itemID = rcp.craftedItemID " +
 		"WHERE auct.cnctdRealmID = " + realmID
 
-	fmt.Println(q)
-
 	result, err := db.Query(q)
 	if err != nil {
 		fmt.Println("Error reading from database: " + err.Error())
@@ -287,7 +291,6 @@ func removeSubbedItem(res http.ResponseWriter, req *http.Request) {
 	json.Unmarshal(body, &unsubRecipe)
 	convertedRealmID, _ := strconv.Atoi(unsubRecipe.RealmID)
 
-	fmt.Println("removeSubbedItem endpoint hit!\n")
 	db, err := sql.Open("mysql", dbh.GetConnectionString())
 	if nil != err {
 		fmt.Println("Error connecting to database: ", err.Error())

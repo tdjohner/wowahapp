@@ -72,16 +72,16 @@ class AddRecipeActivity : AppCompatActivity() {
 
                 recipeList.clear()
                 recipeRecycler?.adapter?.notifyDataSetChanged()
-                auctionDataService.getAllRecipes(realmID.toString(), applicationContext, object : AuctionDataService.ArrayListListener {
-                    override fun onResponse(response: ArrayList<String>) {
+                auctionDataService.getAllRecipes(realmID.toString(), applicationContext, object : AuctionDataService.RecipeHandleArrayListener {
+                    override fun onResponse(response: ArrayList<RecipeHandle>) {
                         // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
                         for (r in response) {
-                            var model = RecipeModel(r, "x", "x", "note","x", realmID)
-                            auctionDataService.getItemListing(r, realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
+                            var model = RecipeModel(r.getName(), "x", "x", "note", r.getURL(), realmID)
+                            auctionDataService.getItemListing(r.getName(), realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
                                 override fun onResponse(response: String) {
                                     val saleprice = response
                                     model.setAverageSalePrice(saleprice)
-                                    auctionDataService.getRecipeBaseCost(r, realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
+                                    auctionDataService.getRecipeBaseCost(r.getName(), realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
                                         override fun onResponse(response: String) {
                                             val cost = response.toDouble()
                                             val sum: String
@@ -191,7 +191,7 @@ class AddRecipeActivity : AppCompatActivity() {
         val title = view.findViewById<TextView>(R.id.recipeName)
         title.text=detailedView.getTitle()
 
-        val popUp = PopupWindow(view, ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT)
+        val popUp = PopupWindow(view, ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT)
         popUp.isOutsideTouchable=true
         popUp.isFocusable=true
         popUp.showAtLocation(view, Gravity.CENTER,0,0)
