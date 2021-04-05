@@ -30,6 +30,7 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
 
     fun setRealmID(id: Int?){
         this.realmID = id!!
+        this.profitability=this.getDiff()
     }
 
     fun getRecipeName(): String?{
@@ -67,6 +68,9 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
     }
     fun setImageLink(imageLink: String?){
         this.imageLink = imageLink!!
+    }
+    fun getProfitability(): Float{
+        return profitability
     }
     fun getDiff(): Float{
         var diff: Float = 0.0F
