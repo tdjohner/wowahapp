@@ -148,7 +148,7 @@ class AuctionDataService {
     }
 
     fun getItemListing(itemName: String, realmID: String, applicationContext: Context, responseListener: VolleyResponseListener) {
-        val url = "https://wowahapp.com:443/itemlisting/" + itemName.replace(" ", "%20") + "/" +  realmID // crappy URL encoding
+        val url = "https://wowahapp.com/itemlisting/" + itemName.replace(" ", "%20") + "/" +  realmID // crappy URL encoding
         var unitPrice : Double
         var buyoutPrice : Double
         var listingPrice : Double

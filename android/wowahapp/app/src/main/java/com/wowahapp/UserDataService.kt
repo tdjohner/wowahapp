@@ -9,7 +9,7 @@ import org.json.JSONObject
 object UserDataService {
 
     fun subscribeRecipe(username: String, recipeName: String, realmID: String, applicationContext: Context) {
-        val url = "http://192.168.0.24:49155/subscriberecipe/"
+        val url = "https://wowahapp.com/subscriberecipe/"
         val params = HashMap<String,String>()
         //These two parameters are pulled from the UI/ recipe objects.
         params["recipeName"] = recipeName
@@ -29,7 +29,7 @@ object UserDataService {
     }
 
     fun unSubRecipe(username: String, recipeName: String, realmID: String, applicationContext: Context) {
-        val url = "http://192.168.0.24:49155/unsubrecipe/"
+        val url = "https://wowahapp.com/unsubrecipe/"
         val params = HashMap<String,String>()
         //These two parameters are pulled from the UI/ recipe objects.
         params["recipeName"] = recipeName
