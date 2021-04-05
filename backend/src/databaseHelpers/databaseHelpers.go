@@ -50,6 +50,11 @@ type ReagentListing struct {
 	cost int
 }
 
+type GameServer struct {
+	CnctdRealmID int `db:cnctdRealmID`
+	RealmName	string `db:realmName`
+}
+
 //Get the connection string from our config
 func GetConnectionString() string {
 	// reading in from web.json from https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
@@ -66,9 +71,34 @@ func GetConnectionString() string {
 	return fmt.Sprintf(baseString, webconfig.ConnectionString.User, webconfig.ConnectionString.Pw, webconfig.ConnectionString.Ip, webconfig.ConnectionString.Port, webconfig.ConnectionString.Schema)
 }
 
+func GetDetailedBreakdown(name string, realmID string, db *sql.DB) []ReagentItem{
+	var reagents = []ReagentItem{}
+
+	q := fmt.Sprintf("select rgt.name, rgt.quantity, auct.unitPrice + auct.buyout as cost, auct.quantity as available " +
+		"from tbl_recipes rp " +
+	"join tbl_reagents rgt on rgt.recipeID = rp.id " +
+	"join tbl_auctions_current auct on auct.itemID = rgt.reagentItemID " +
+	"where rp.name = \"%s\" and cnctdRealmID = %s;",name, realmID)
+
+	rows, err := db.Query(q)
+	if nil != err {
+		fmt.Println("Error recipe base cost from database: ", err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var r ReagentItem
+		_ = rows.Scan(&r.Name, &r.Quantity, &r.Cost, &r.Available)
+		reagents = append(reagents, r)
+	}
+	return reagents
+}
+
+
 func GetAuctionByName(name string, realmID string, db *sql.DB) AuctionSlice {
 	var auct AuctionSlice
 	q := fmt.Sprintf("SELECT name, unitPrice, buyout FROM tbl_auctions_current auct JOIN tbl_item itm on itm.id = auct.itemID WHERE name = \"%s\" and cnctdRealmID = \"%s\";", name, realmID )
+
 	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error getting Auction Slice from database: ", err.Error())
@@ -145,17 +175,17 @@ func GetAllExpacs(db *sql.DB) []string {
 	return expacs
 }
 
-func GetSupportedServers(db *sql.DB) []string {
-	servers := []string{}
-	q := "SELECT realmName from tbl_connected_realm"
+func GetSupportedServers(db *sql.DB) []GameServer {
+	servers := []GameServer{}
+	q := "SELECT cnctdRealmID, realmName from tbl_connected_realm"
 	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error retrieving supported servers from the database: ", err.Error())
 	}
 	for rows.Next() {
-		var p string
-		err = rows.Scan(&p)
-		servers = append(servers, p)
+		var gs GameServer
+		err = rows.Scan(&gs.CnctdRealmID, &gs.RealmName)
+		servers = append(servers, gs)
 	}
 	return servers
 }
@@ -212,3 +242,5 @@ func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 	}
 	return cost
 }
+
+

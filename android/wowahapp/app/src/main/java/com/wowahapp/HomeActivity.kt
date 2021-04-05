@@ -18,16 +18,12 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.android.volley.Request
-import com.android.volley.Response
-import com.android.volley.toolbox.JsonObjectRequest
 import com.auth0.android.Auth0
 import com.auth0.android.authentication.AuthenticationException
 import com.auth0.android.callback.Callback
 import com.auth0.android.provider.WebAuthProvider
 import com.auth0.android.result.Credentials
 import com.auth0.android.result.UserProfile
-import org.json.JSONObject
 import kotlin.system.exitProcess
 
 class HomeActivity : AppCompatActivity() {
@@ -45,6 +41,8 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
+
+        val auctionDataService = AuctionDataService()
 
         // Initialize the account settings
         account = Auth0(
@@ -64,10 +62,23 @@ class HomeActivity : AppCompatActivity() {
         }
 
         val recyclerView: RecyclerView = findViewById(R.id.recyclerView3)
-        customAdapter = CustomAdapter(itemsList)
+        customAdapter = CustomAdapter(itemsList, application as CustomApplication)
         val layoutManager = LinearLayoutManager(applicationContext)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = customAdapter
+
+        auctionDataService.getSubbedRecipes((application as CustomApplication).getUserName(), applicationContext, object: AuctionDataService.RecipeModelListener {
+            override fun onResponse(response: ArrayList<RecipeModel>) {
+                for (r in response) {
+                    customAdapter.addItem(r)
+                }
+            }
+
+            override fun onError(error: String) {
+                println("Error getting subscribed item JSON: " + error)
+            }
+        })
+
         customAdapter.setOnClick(object : RecyclerviewCallbacks<RecipeModel> {
             override fun onItemClick(view: View, position: Int, item: RecipeModel){
                 //This is just to populate it to test
@@ -75,51 +86,25 @@ class HomeActivity : AppCompatActivity() {
                 val reagent: ArrayList<String> = ArrayList()
                 val availableList: ArrayList<ArrayList<String>> = ArrayList(ArrayList())
                 val available: ArrayList<String> = ArrayList()
-                available.add("${item.getAverageSalePrice()}")
-                availableList.add(available)
-                available.add("${item.getSalePrice()}")
-                available.add("${item.getAverageSalePrice()}")
-                availableList.add(available)
-                reagent.add("${item.getRecipeName()}")
-                reagent.add("${item.getAverageSalePrice()}")
-                reagentList.add(reagent)
 
-                //Both of these lists are ArrayList<ArrayList<String>>
-                //You want the first list(where reagentList is) entered here to be lists of reagents and their amounts
-                //second list is lists of amount available, name, and cost
-                //headers and string value changes can be made in DetailedView.kt in the getEntries function
-                val detailedView : DetailedView=DetailedView("${item.getRecipeName()}", reagentList, availableList)
-                showDetail("${item.getRecipeName()}",detailedView)
-
+                auctionDataService.getListingDetails("${item.getRecipeName()}", "${item.getRealmID()}", applicationContext,
+                 object: AuctionDataService.ReagentPairListener {
+                     override fun onResponse(response: Pair<ArrayList<ArrayList<String>>, ArrayList<ArrayList<String>>>) {
+                         val detailsPair = response
+                         val detailedView = DetailedView("${item.getRecipeName()}", detailsPair.first, detailsPair.second)
+                         showDetail("${item.getRecipeName()}",detailedView)
+                     }
+                     override fun onError(error: String) {
+                         println("Error getting base recipe detailed info: " + error)
+                     }
+                 })
         }})
-        prepareItems()
-
-
     }
-
-    private fun prepareItems() {
-        var recipe = RecipeModel("Spaghetti", "40.00","1", "3","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
-        customAdapter.addItem(recipe)
-        recipe = RecipeModel("Noodles", "500.00","1", "2","x")
-        customAdapter.addItem(recipe)
-        recipe = RecipeModel("test","1","1","1","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
-        customAdapter.addItem(recipe)
-        customAdapter.addItem(recipe)
-        recipe = RecipeModel("test", "500.00","2", "1","x")
-        customAdapter.addItem(recipe)
-        recipe = RecipeModel("test","1","3","1","https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg")
-        customAdapter.addItem(recipe)
-    }
-    private fun prepareDetails(){
-        var detail = DetailedEntries(arrayListOf("test", "test", "test"))
-        customAdapterDetails.addItem(detail)
-    }
-
 
     private fun showDetail(title: String, detailedView: DetailedView){
         var detailedEntries = ArrayList<DetailedEntries>()
-        detailedEntries=detailedView.getEntries()
-        val inflater=getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        detailedEntries = detailedView.getEntries()
+        val inflater= getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val view = inflater.inflate(R.layout.recipe_details, null)
         val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView)
         customAdapterDetails = CustomAdapterDetails(detailList)
@@ -128,7 +113,7 @@ class HomeActivity : AppCompatActivity() {
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = customAdapterDetails
         val title = view.findViewById<TextView>(R.id.recipeName)
-        title.text=detailedView.getTitle()
+        title.text = detailedView.getTitle()
 
         val popUp = PopupWindow(view, ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT)
         popUp.isOutsideTouchable=true
@@ -142,26 +127,5 @@ class HomeActivity : AppCompatActivity() {
 
         intent = Intent(this@HomeActivity, MainActivity::class.java)
         startActivity(intent)
-    }
-
-    private fun sendJsonObject(){
-        val url = "https://wowahapp.com/createuser/"
-        val params = HashMap<String,Int>()
-        //These two parameters are pulled from the UI/ recipe objects.
-        params["itemId"] = 3;
-        params["userId"] = 4;
-
-        val jsonObject = JSONObject(params as Map<*, *>)
-
-        val request = JsonObjectRequest(
-            Request.Method.POST, url, jsonObject,
-            Response.Listener { response ->
-                //Toast.makeText(this@HomeActivity, "Added Recipe Subscription", Toast.LENGTH_SHORT).show()
-            },
-            Response.ErrorListener {
-                    error -> error.printStackTrace()
-            }
-        )
-        VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 }

@@ -11,8 +11,11 @@ import com.bumptech.glide.Glide
 import kotlin.math.absoluteValue
 
 class CustomAdapterShopping(private val data: List<RecipeModel>) :
-    RecyclerView.Adapter<CustomAdapterShopping.MyViewHolder>() {
+    RecyclerView.Adapter<CustomAdapterShopping.MyViewHolder>(), Filterable {
     private var recipeList: MutableList<RecipeModel> = data as MutableList<RecipeModel>
+    private var recipeListFull = deepCopyRecipeList(getDataList())
+    private var safeCopyFlag = 0
+
     var callback: RecyclerviewCallbacks<RecipeModel>? = null
     inner class MyViewHolder(val view: View) : RecyclerView.ViewHolder(view){
         fun bind(recipe: RecipeModel, index: Int){
@@ -32,11 +35,43 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
             Glide.with(view)
                 .load(recipe.getImageLink())
                 .into(itemImage)
+
             toggleButton.setOnClickListener() {
                 toggleSubscribe(recipe, toggleButton)
             }
             view.setOnClickListener{
                 callback?.onItemClick(it, adapterPosition,recipeList[adapterPosition])
+            }
+        }
+    }
+
+    override fun getFilter(): Filter {
+        return object : Filter() {
+            override fun performFiltering(p0: CharSequence?): FilterResults {
+                if (safeCopyFlag == 0) {
+                    safeCopyFlag = 1
+                    recipeListFull = deepCopyRecipeList(getDataList())
+                }
+                val charSearch = p0.toString().toLowerCase()
+                var filterList = mutableListOf<RecipeModel>()
+                if (charSearch.isEmpty()) {
+                    filterList = deepCopyRecipeList(recipeListFull)
+                } else {
+                    for (row in recipeListFull) {
+                        if (row.getRecipeName()?.toLowerCase()?.contains(charSearch)!!) {
+                            filterList.add(row.deepCopy())
+                        }
+                    }
+                }
+                val filterResults = FilterResults()
+                filterResults.values = filterList
+                return filterResults
+            }
+            @Suppress("UNCHECKED_CAST")
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                recipeList.clear()
+                recipeList.addAll(results?.values as MutableList<RecipeModel>)
+                notifyDataSetChanged()
             }
         }
     }
@@ -47,6 +82,10 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
         val itemView = LayoutInflater.from(parent.context)
             .inflate(R.layout.shopping_item, parent, false)
         return MyViewHolder(itemView)
+    }
+
+    fun getDataList(): MutableList<RecipeModel> {
+        return this.recipeList
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
@@ -74,6 +113,7 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
     fun toggleSubscribe(recipe: RecipeModel, button: CheckBox) {
         recipe.setIsSelected(button.isChecked)
     }
+
     fun setOnClick(click: RecyclerviewCallbacks<RecipeModel>) {
         callback=click
     }
@@ -106,4 +146,13 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
         return Color.argb(255,red,green, blue)
     }
 
+    fun deepCopyRecipeList(rList: MutableList<RecipeModel>): MutableList<RecipeModel> {
+        var newList = mutableListOf<RecipeModel>()
+
+        for (r in rList) {
+            val copy = r.deepCopy()
+            newList.add(r.deepCopy())
+        }
+        return newList
+    }
 }

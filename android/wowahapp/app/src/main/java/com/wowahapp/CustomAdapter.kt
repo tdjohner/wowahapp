@@ -1,9 +1,5 @@
 package com.wowahapp
 
-import android.app.AlertDialog
-import android.app.Dialog
-import android.content.Context
-import android.content.Context.*
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
@@ -12,12 +8,14 @@ import android.widget.*
 import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import kotlin.math.absoluteValue
 
 
-class CustomAdapter(private val data: List<RecipeModel>) :
+
+
+class CustomAdapter(private val data: List<RecipeModel>, application: CustomApplication) :
     RecyclerView.Adapter<CustomAdapter.MyViewHolder>() {
     private var recipeList: MutableList<RecipeModel> = data as MutableList<RecipeModel>
+    private val application = application
     var callback: RecyclerviewCallbacks<RecipeModel>? = null
     inner class MyViewHolder(val view: View) : RecyclerView.ViewHolder(view){
         fun bind(recipe: RecipeModel, index: Int){
@@ -37,9 +35,12 @@ class CustomAdapter(private val data: List<RecipeModel>) :
             Glide.with(view)
                 .load(recipe.getImageLink())
                 .into(itemImage)
-            removeButton.setOnClickListener{removeItem(index)}
+            removeButton.setOnClickListener{
+                removeItem(index)
+                UserDataService.unSubRecipe(application.getUserName(), recipeName.text.toString(), recipe.getRealmID().toString(), application.applicationContext)
+            }
             view.setOnClickListener{
-                callback?.onItemClick(it, adapterPosition,recipeList[adapterPosition])
+                callback?.onItemClick(it, adapterPosition, recipeList[adapterPosition])
             }
         }
 
@@ -51,9 +52,12 @@ class CustomAdapter(private val data: List<RecipeModel>) :
             .inflate(R.layout.item, parent, false)
         return MyViewHolder(itemView)
     }
+
+
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.bind(recipeList[position], position)
     }
+
     override fun getItemCount(): Int {
         return recipeList.size
     }
