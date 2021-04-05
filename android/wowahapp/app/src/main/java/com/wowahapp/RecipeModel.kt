@@ -9,6 +9,7 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
     private var link: String
     private var isSelected: Boolean
     private var imageLink: String
+    private var profitability: Float
     private var realmID: Int
     init{
         this.recipeName = recipeName!!
@@ -18,6 +19,7 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
         this.isSelected = false
         this.imageLink = imageLink!!
         this.realmID = realmID!!
+        this.profitability=this.getDiff()
     }
 
     fun deepCopy(): RecipeModel{
