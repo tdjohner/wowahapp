@@ -50,7 +50,7 @@ class AuctionDataService {
 
     fun getListingDetails(recipeName: String, realmID: String, applicationContext: Context, reagentPairListener: ReagentPairListener) {
         val name = recipeName.replace(" ", "%20") // some shady formatting
-        val url = "http://192.168.0.24:49155/detailedlisting/" + name + "/" + realmID
+        val url = "https://wowahapp.com/detailedlisting/" + name + "/" + realmID
         val request = JsonArrayRequest(Request.Method.GET, url, null,
             Response.Listener { response ->
                 try {
@@ -93,7 +93,7 @@ class AuctionDataService {
 
     //The username parameter could be gotten from App.kt but I want it to be explicitly apparent through usage.
     fun getSubbedRecipes(username: String, applicationContext: Context, recipeModelListener: RecipeModelListener) {
-        val url = "http://192.168.0.24:49155/getsubbedrecipes/" + username
+        val url = "https://wowahapp.com/getsubbedrecipes/" + username
 
         var recipeList = ArrayList<RecipeModel>()
         val request = JsonArrayRequest(Request.Method.GET, url, null,
@@ -121,7 +121,7 @@ class AuctionDataService {
     }
 
     fun getAllRecipes(realmID: String, applicationContext : Context, recipeHandleListener : RecipeHandleArrayListener ) {
-        val url = "http://192.168.0.24:49155/allrecipes/" + realmID
+        val url = "https://wowahapp.com/allrecipes/" + realmID
         
         var recipeList = ArrayList<RecipeHandle>()
         val request = JsonArrayRequest(Request.Method.GET, url, null,
@@ -203,7 +203,7 @@ class AuctionDataService {
     }
 
     fun getAllServers(applicationContext: Context, responseListener: RealmListListener) {
-        val url = "http://192.168.0.24:49155/allservers"
+        val url = "https://wowahapp.com/allservers"
         var tmp: JSONObject
         val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response -> try {
             var servers : MutableMap<String, Int> = emptyMap<String, Int>().toMutableMap()
