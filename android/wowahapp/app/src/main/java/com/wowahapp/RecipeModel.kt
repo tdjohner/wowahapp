@@ -74,9 +74,12 @@ class RecipeModel (recipeName: String?, averageSalePrice: String?, salePrice: St
     fun getProfitability(): Float{
         return profitability
     }
+    fun setProfitability(){
+        this.profitability=this.getDiff()
+    }
     fun getDiff(): Float{
         var diff: Float = 0.0F
-        if(this.link.toFloat()!=0.0F){
+        if(this.salePrice.toFloat()!=0.0F){
             diff=(this.link.toFloat()-this.salePrice.toFloat())/this.salePrice.toFloat()
         }
         return diff
