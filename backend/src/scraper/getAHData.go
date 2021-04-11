@@ -202,12 +202,10 @@ func getDistinctRealms(db *sql.DB) []int {
 	allSupportedRealms := dbh.GetSupportedServers(db)
 	var distinctRealms []int
 	for realm := range allSupportedRealms {
-		fmt.Println(realm)
 		matchflag := false
 		for d := range distinctRealms {
-			fmt.Println(distinctRealms[d], allSupportedRealms[realm].CnctdRealmID)
+
 			if distinctRealms[d] == allSupportedRealms[realm].CnctdRealmID {
-				fmt.Println("match!")
 				matchflag = true
 				break //already a match, no need to continue
 			}
@@ -218,9 +216,6 @@ func getDistinctRealms(db *sql.DB) []int {
 		}
 		//add to list if it doesn't
 		distinctRealms = append(distinctRealms, allSupportedRealms[realm].CnctdRealmID)
-	}
-	for r := range distinctRealms{
-		fmt.Println(distinctRealms[r])
 	}
 	return distinctRealms
 }
