@@ -171,6 +171,9 @@ type Item struct {
 type Recipes struct {
 	ID       int    `json:"id"`
 	Name     string `json:"name"`
+	Crafted_item struct{
+		ID   int    `json:"id"`
+	}
 	Reagents []struct {
 		Reagent struct {
 			Name string `json:"name"`
@@ -181,6 +184,12 @@ type Recipes struct {
 	CraftedQuantity struct {
 		Minimum int `json:"minimum"`
 		Maximum int `json:"maximum"`
+	}
+}
+//Struct that holds the URL for the image.
+type RecipeMedia struct {
+	Assets []struct{
+		Value 		 string `json:"value"`
 	}
 }
 
@@ -268,8 +277,9 @@ func PullItem(id int, accessToken string) (Item, int) {
 	return Item, error
 }
 
-func PullRecipe(id int, accessToken string) (Recipes, int) {
+func PullRecipe(id int, accessToken string) (Recipes,RecipeMedia, int) {
 	var Recipe Recipes
+	var Media RecipeMedia
 	var error int
 	url := "https://us.api.blizzard.com/data/wow/recipe/" + strconv.Itoa(id) + "?namespace=static-us&locale=en_US&access_token=" + accessToken
 
@@ -282,8 +292,20 @@ func PullRecipe(id int, accessToken string) (Recipes, int) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(body, &Recipe)
 
+	time.Sleep(150 * time.Millisecond) //Sleep to avoid api timeout
+	//Pull Recipe Media
+	url = "https://us.api.blizzard.com/data/wow/media/recipe/" + strconv.Itoa(id) + "?namespace=static-us&locale=en_US&access_token=" + accessToken
 
-	return Recipe, error
+	resp, err = http.Get(url)
+	if err != nil {
+		log.Fatal(err)
+	} else if 404 == resp.StatusCode {
+		error = 404
+	}
+	body, _ = ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(body, &Media)
+
+	return Recipe,Media, error
 }
 
 //place Item row in our database
@@ -360,28 +382,36 @@ func scrapeRecipes() {
 	}
 	defer db.Close()
 
+
 	//Possibly does not need to be as high as 100k. No recipes exist lower than 1800.
-	for i := 1800; i < 100000; i++ {
+	for i := 31040; i < 100000; i++ {
 		var Recipe Recipes
-		Recipe, err := PullRecipe(i, access_token)
+		Recipe,URL,err := PullRecipe(i, access_token)
 		//Check if 404, no recipe for i
 		if err == 404 {
 			fmt.Println("No recipe available for ID ", i)
-			time.Sleep(250 * time.Millisecond)
+			time.Sleep(150 * time.Millisecond)
 			continue
 		}
-		fmt.Printf("%+v\n", Recipe)
+		//fmt.Printf("%+v\n", Recipe)
+		fmt.Printf("%+v\n", URL)
+		//Get CraftedItemURL from Media API.
 		//Insert Recipe into Recipes table if non 404.
-		query, myerr := db.Query("INSERT INTO tbl_recipes(ID,Name) VALUES (?,?)", Recipe.ID, Recipe.Name)
-		query.Close()
+
+		query, myerr := db.Query("INSERT INTO tbl_recipes(ID,Name,craftedItemID,craftedItemURL) VALUES (?,?,?,?)", Recipe.ID, Recipe.Name,Recipe.Crafted_item.ID,URL.Assets[0].Value)
+
+		defer query.Close()
 		if nil != myerr {
 			fmt.Println("Error Inserting Recipe: ", myerr.Error())
 			fmt.Println(query)
 		}
+		fmt.Println(Recipe.Crafted_item.ID)  //Print scraped crafted item ID
 		//Now insert into reagent table.
-		//Can add reagentitemid if needed.
+
 		for i := 0; i < len(Recipe.Reagents); i++ {
+
 			reagentQuery, err := db.Query("INSERT INTO tbl_reagents(recipeID,name,category,quantity, reagentItemID) VALUES (?,?,?,?,?)",
+
 				Recipe.ID, Recipe.Reagents[i].Reagent.Name, "none", Recipe.Reagents[i].Quantity, Recipe.Reagents[i].Reagent.ID)
 
 			reagentQuery.Close()
