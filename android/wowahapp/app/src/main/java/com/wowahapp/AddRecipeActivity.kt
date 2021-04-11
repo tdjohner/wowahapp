@@ -77,7 +77,7 @@ class AddRecipeActivity : AppCompatActivity() {
                     override fun onResponse(response: ArrayList<RecipeHandle>) {
                         // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
                         for (r in response) {
-                            var model = RecipeModel(r.getName(), "x", "x", "0.0", r.getURL(), realmID)
+                            var model = RecipeModel(r.getName(), "x", "0.0", "0.0", r.getURL(), realmID)
                             auctionDataService.getItemListing(r.getName(), realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
                                 override fun onResponse(response: String) {
                                     val saleprice = response
@@ -90,6 +90,7 @@ class AddRecipeActivity : AppCompatActivity() {
                                                 sum = calculateExchange(saleprice.toDouble(), cost)
                                                 model.setSalePrice(String.format("%.2f", cost))
                                                 model.setLink(sum)
+                                                model.setProfitability()
                                                 recipeAdapter.addItem(model)
                                             }
                                         }
