@@ -76,7 +76,7 @@ func GetDetailedBreakdown(name string, realmID string, db *sql.DB) []ReagentItem
 	var reagents = []ReagentItem{}
 	//TODO If server is in the process of optimizing data/creating the tables, and a user queries, there will be issues.
 	q := fmt.Sprintf("select name,quantity,cost,available,recipeName from MaterializedView"+
-		" where recipeName = \"%s\" ", name)
+		" where recipeName = \"%s\" and cnctdRealmID = %s;", name, realmID)
 
 	rows, err := db.Query(q)
 	if nil != err {
@@ -194,7 +194,7 @@ func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 	cost := 0
 
 	q := fmt.Sprintf("select name,quantity,cost,available,recipeName from MaterializedView"+
-		" where recipeName = \"%s\" ", name)
+		" where recipeName \"%s\" and cnctdRealmID = %s;", name, realm)
 
 	rows, err := db.Query(q)
 	if nil != err {

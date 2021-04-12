@@ -36,9 +36,7 @@ func main() {
 
 	//First scrape, once done scraping and tbl_auctions_current been created, optimize the data.
 	connectionString := dbh.GetConnectionString()
-
 	accessToken := getAccessToken()
-
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		fmt.Println("Connection to database failed: " + err.Error())
