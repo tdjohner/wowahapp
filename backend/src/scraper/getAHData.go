@@ -17,10 +17,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-
-var tableName = "tbl_auctions_current"
-
-var newAuctionTableQuery = "CREATE TABLE tbl_auctions_current (" +
+var newTempTableQuery = "CREATE TABLE tbl_auctions_temp (" +
 	"id INT unsigned auto_increment primary key, " +
 	"cnctdRealmID INT, " +
 	"auctionID INT, " +
@@ -32,10 +29,9 @@ var newAuctionTableQuery = "CREATE TABLE tbl_auctions_current (" +
 	"timeLeft VARCHAR(16))"
 
 func main() {
-	//scrapeRecipes()
 
 	connectionString := dbh.GetConnectionString()
-	accessToken := getAccessToken()
+	accessToken := getAccessToken() // Our access token to use the Blizzard API. Appended to the HTTP requests
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		fmt.Println("Connection to database failed: " + err.Error())
@@ -45,15 +41,7 @@ func main() {
 
 	realms := getDistinctRealms(db)
 
-	//First we rename the old table. This is currently our only method of archiving historical price data
-	archiveTableName := fmt.Sprintf("aucts_date%s",time.Now().Local().Format("2006_01_02_15_04_05"))
-	renameQuery := fmt.Sprintf("RENAME TABLE tbl_auctions_current TO %s", archiveTableName)
-	conn, err := db.Query(renameQuery)
-	if nil != err {
-		fmt.Println("Error creating Archive Auction Table: ", err)
-	}
-	conn.Close()
-	conn, err = db.Query(newAuctionTableQuery)
+	conn, err := db.Query(newTempTableQuery) //create Temp table to hold data while insertion is being done.
 	if nil != err {
 		fmt.Println("Error creating a new Auction Table: ", err)
 	}
@@ -61,61 +49,78 @@ func main() {
 
 	for _, realm := range realms {
 		//now we put all the realms auctions in the new table
+		fmt.Println("Getting auctions for realmID: ", realm)
 		auctions := PullAuctions(realm, getAccessToken())
 		for _, auction := range auctions.Auctions {
-			PushAuction(auction, tableName, realm, db)
-		}
-
-		// get all the ItemIDs from the auctions we just inserted
-		var incomingID int
-		var incomingIDs []int
-		conn, err = db.Query(fmt.Sprintf("SELECT DISTINCT itemID from %s order by itemID", tableName))
-		if nil != err {
-			fmt.Println("Error populating incomingIDs: ", err)
-		}
-		for conn.Next() {
-			conn.Scan(&incomingID)
-			incomingIDs = append(incomingIDs, incomingID)
-		}
-		conn.Close()
-
-		// get all existing ItemIDs from the Items table
-		var existingID int
-		var existingIDs []int
-		conn, err = db.Query(fmt.Sprintf("SELECT DISTINCT id from tbl_item order by id"))
-		if nil != err {
-			fmt.Println("Error querying existingIDs: ", err)
-		}
-		for conn.Next() {
-			conn.Scan(&existingID)
-			existingIDs = append(existingIDs, existingID)
-		}
-		conn.Close()
-
-		// Iterate over all Items and add any we don't have
-		var matchFlag bool
-		for _, k := range incomingIDs {
-			matchFlag = false
-			for _, j := range existingIDs {
-				if k == j {
-					matchFlag = true
-					break // match found, not to be added
-				}
-			}
-			if !matchFlag {
-				// no match in database, pull Item from blizzard API and store it
-				fmt.Println("Adding new item: ", k)
-				newItem, cheapErr := PullItem(k, accessToken)
-				if 404 == cheapErr {
-					fmt.Println("Failed to retrieve item from database: ", k)
-					continue
-				}
-				PushItem(newItem, db)
-				time.Sleep(500 * time.Millisecond)
-			}
+			PushAuction(auction, "tbl_auctions_temp", realm, db)
 		}
 	}
 
+	// get all the ItemIDs from the auctions we just inserted
+	var incomingID int
+	var incomingIDs []int
+	conn, err = db.Query("SELECT DISTINCT itemID from tbl_auctions_temp order by itemID")
+	if nil != err {
+		fmt.Println("Error populating incomingIDs: ", err)
+	}
+	for conn.Next() {
+		conn.Scan(&incomingID)
+		incomingIDs = append(incomingIDs, incomingID)
+	}
+	conn.Close()
+
+	// get all existing ItemIDs from the Items table
+	var existingID int
+	var existingIDs []int
+	conn, err = db.Query(fmt.Sprintf("SELECT DISTINCT id from tbl_item order by id"))
+	if nil != err {
+		fmt.Println("Error querying existingIDs: ", err)
+	}
+	for conn.Next() {
+		conn.Scan(&existingID)
+		existingIDs = append(existingIDs, existingID)
+	}
+	conn.Close()
+
+	// Iterate over all Items and add any we don't already have
+	var matchFlag bool
+	for _, k := range incomingIDs {
+		matchFlag = false
+		for _, j := range existingIDs {
+			if k == j {
+				matchFlag = true
+				break // match found, not to be added
+			}
+		}
+		if !matchFlag {
+			// no match in database, pull Item from blizzard API and store it
+			fmt.Println("Adding new item: ", k)
+			newItem, cheapErr := PullItem(k, accessToken)
+			if 404 == cheapErr {
+				fmt.Println("Failed to retrieve item from database: ", k)
+				continue
+			}
+			PushItem(newItem, db)
+			time.Sleep(500 * time.Millisecond)
+		}
+	}
+
+	// Rename the old auction table. This is currently our only method of archiving historical price data
+	archiveTableName := fmt.Sprintf("aucts_date%s",time.Now().Local().Format("2006_01_02_15_04_05"))
+	renameQuery := fmt.Sprintf("RENAME TABLE tbl_auctions_current TO %s", archiveTableName)
+	conn, err = db.Query(renameQuery)
+	if nil != err {
+		fmt.Println("Error creating Archive Auction Table: ", err)
+	}
+	conn.Close()
+
+	// Rename the new auction data table to tbl_auctions_current
+	renameQuery = "RENAME TABLE tbl_auctions_temp TO tbl_auctions_current"
+	conn, err = db.Query(renameQuery)
+	if nil != err {
+		fmt.Println("Error creating Archive Auction Table: ", err)
+	}
+	conn.Close()
 }
 
 type Realms struct {
@@ -197,11 +202,19 @@ func getDistinctRealms(db *sql.DB) []int {
 	allSupportedRealms := dbh.GetSupportedServers(db)
 	var distinctRealms []int
 	for realm := range allSupportedRealms {
+		matchflag := false
 		for d := range distinctRealms {
+
 			if distinctRealms[d] == allSupportedRealms[realm].CnctdRealmID {
-				continue //bail if it already exists.
+				matchflag = true
+				break //already a match, no need to continue
 			}
-		}				//add to list if it doesn't
+		}
+		if matchflag == true {
+			//bail if it already exists.
+			continue
+		}
+		//add to list if it doesn't
 		distinctRealms = append(distinctRealms, allSupportedRealms[realm].CnctdRealmID)
 	}
 	return distinctRealms
@@ -247,14 +260,14 @@ func getAccessToken() string {
 }
 
 func getBlizzSecret() string {
-	json, _ := ioutil.ReadFile("../web.json")
+	json, _ := ioutil.ReadFile("/wowahapp/backend/src/web.json")
 	str := string(json)
 	val := gjson.Get(str, "blizzClient.blizzClientSecret")
 	return string(val.String())
 }
 
 func getBlizzClient() string {
-	json, _ := ioutil.ReadFile("../web.json")
+	json, _ := ioutil.ReadFile("/wowahapp/backend/src/web.json")
 	str := string(json)
 	val := gjson.Get(str, "blizzClient.blizzClientId")
 	return string(val.String())
@@ -424,4 +437,3 @@ func scrapeRecipes() {
 		time.Sleep(500 * time.Millisecond)
 	}
 }
-
