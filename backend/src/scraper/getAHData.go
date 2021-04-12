@@ -34,14 +34,16 @@ var newAuctionTableQuery = "CREATE TABLE tbl_auctions_current (" +
 func main() {
 	//scrapeRecipes()
 
+	//First scrape, once done scraping and tbl_auctions_current been created, optimize the data.
 	connectionString := dbh.GetConnectionString()
+
 	accessToken := getAccessToken()
+
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		fmt.Println("Connection to database failed: " + err.Error())
 	}
 	defer db.Close()
-
 
 	realms := getDistinctRealms(db)
 
@@ -54,6 +56,7 @@ func main() {
 	}
 	conn.Close()
 	conn, err = db.Query(newAuctionTableQuery)
+
 	if nil != err {
 		fmt.Println("Error creating a new Auction Table: ", err)
 	}
@@ -115,7 +118,8 @@ func main() {
 			}
 		}
 	}
-
+	//Possibly do not open another connection inside optimizeData.
+	optimizeData(connectionString)
 }
 
 type Realms struct {
@@ -207,6 +211,45 @@ func getDistinctRealms(db *sql.DB) []int {
 	return distinctRealms
 }
 
+func optimizeData(connectionString string){
+
+	db, err := sql.Open("mysql", connectionString)
+	if err != nil {
+		fmt.Println("Connection to database failed: " + err.Error())
+	}
+	defer db.Close()
+
+	_, tableCheck := db.Query("select * from " + "MaterializedView" + ";")
+
+	if tableCheck == nil {
+
+		fmt.Println("table is there, deleting...")
+		//Delete last hours table, FOR SOME REASON IT IS SO SLOW
+		_, _ = db.Query("DROP TABLE MaterializedView");
+		println("Deleted Table")
+
+		//Create the table
+		_, _ = db.Query("CREATE table MaterializedView" +
+			" select rgt.name, rgt.quantity, auct.unitPrice + auct.buyout as cost," +
+			" auct.quantity as available,rp.name as recipeName, auct.cnctdRealmID as cnctdRealmID from tbl_recipes rp" +
+			" join tbl_reagents rgt on rgt.recipeID = rp.id " +
+			" join tbl_auctions_current auct on auct.itemID = rgt.reagentItemID")
+		//Create our recipeName index on the matview.
+		_, _ = db.Query("CREATE INDEX recipeNameIndexTest ON Materializedview(recipeName);")
+
+	} else {
+		fmt.Println("table not there,creating....")
+		//Create the table
+		_, _ = db.Query("CREATE table MaterializedView" +
+			" select rgt.name, rgt.quantity, auct.unitPrice + auct.buyout as cost," +
+			" auct.quantity as available,rp.name as recipeName, auct.cnctdRealmID as cnctdRealmID from tbl_recipes rp" +
+			" join tbl_reagents rgt on rgt.recipeID = rp.id " +
+			" join tbl_auctions_current auct on auct.itemID = rgt.reagentItemID")
+		//Create our recipeName index on the matview.
+		_, _ = db.Query("CREATE INDEX recipeNameIndexTest ON Materializedview(recipeName);")
+
+	}
+}
 func PullAuctions(realmID int, accessToken string) AuctionLedger {
 	url := "https://us.api.blizzard.com/data/wow/connected-realm/%d/auctions?namespace=dynamic-us&locale=en_US&access_token="
 	url = fmt.Sprintf(url+accessToken, realmID)
