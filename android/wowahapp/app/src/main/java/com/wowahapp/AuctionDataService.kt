@@ -51,6 +51,7 @@ class AuctionDataService {
     fun getListingDetails(recipeName: String, realmID: String, applicationContext: Context, reagentPairListener: ReagentPairListener) {
         val name = recipeName.replace(" ", "%20") // some shady formatting
         val url = "https://wowahapp.com/detailedlisting/" + name + "/" + realmID
+        println(url)
         val request = JsonArrayRequest(Request.Method.GET, url, null,
             Response.Listener { response ->
                 try {
@@ -94,6 +95,7 @@ class AuctionDataService {
     //The username parameter could be gotten from App.kt but I want it to be explicitly apparent through usage.
     fun getSubbedRecipes(username: String, applicationContext: Context, recipeModelListener: RecipeModelListener) {
         val url = "https://wowahapp.com/getsubbedrecipes/" + username
+        println(url)
 
         var recipeList = ArrayList<RecipeModel>()
         val request = JsonArrayRequest(Request.Method.GET, url, null,
@@ -122,6 +124,7 @@ class AuctionDataService {
 
     fun getAllRecipes(realmID: String, applicationContext : Context, recipeHandleListener : RecipeHandleArrayListener ) {
         val url = "https://wowahapp.com/allrecipes/" + realmID
+        println(url)
         
         var recipeList = ArrayList<RecipeHandle>()
         val request = JsonArrayRequest(Request.Method.GET, url, null,
@@ -149,6 +152,7 @@ class AuctionDataService {
 
     fun getItemListing(itemName: String, realmID: String, applicationContext: Context, responseListener: VolleyResponseListener) {
         val url = "https://wowahapp.com/itemlisting/" + itemName.replace(" ", "%20") + "/" +  realmID // crappy URL encoding
+        println(url)
         var unitPrice : Double
         var buyoutPrice : Double
         var listingPrice : Double
@@ -171,6 +175,7 @@ class AuctionDataService {
 
     fun getAllProfessions(applicationContext: Context, responseListener: ArrayListListener) {
         val url = "https://wowahapp.com/allprofessions"
+        println(url)
         val request = JsonArrayRequest(Request.Method.GET, url, null,
             Response.Listener {
                     response -> try {
@@ -189,6 +194,7 @@ class AuctionDataService {
 
     fun getAllExpansions(applicationContext: Context, responseListener: ArrayListListener) {
         val url = "https://wowahapp.com/allexpansions"
+        println(url)
         val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response -> try {
             var expArray : ArrayList<String> = ArrayList<String>()
             for (i in 0 until response.length()) {
@@ -204,6 +210,7 @@ class AuctionDataService {
 
     fun getAllServers(applicationContext: Context, responseListener: RealmListListener) {
         val url = "https://wowahapp.com/allservers"
+        println(url)
         var tmp: JSONObject
         val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response -> try {
             var servers : MutableMap<String, Int> = emptyMap<String, Int>().toMutableMap()
@@ -221,7 +228,7 @@ class AuctionDataService {
 
     fun getRecipeBaseCost(recipeName: String, realmID: String, applicationContext: Context, responseListener: VolleyResponseListener) {
         val url = "https://wowahapp.com/recipebasecost/"+recipeName.replace(" ", "%20")+"/"+realmID
-
+        println(url)
         val request = StringRequest(Request.Method.GET, url, Response.Listener<String> { response -> try {
             responseListener.onResponse(response)
         } catch (e: Exception) {

@@ -3,6 +3,7 @@ package com.wowahapp
 import android.content.Context
 import com.android.volley.Request
 import com.android.volley.RequestQueue
+import com.android.volley.RequestQueue.RequestFilter
 import com.android.volley.toolbox.Volley
 
 /*
@@ -31,5 +32,9 @@ class VolleyWebService constructor(context: Context) {
 
     fun <T> addToRequestQueue(req: Request<T>) {
         requestQueue.add(req)
+    }
+
+    fun clearRequestQueue() {
+        requestQueue.cancelAll({ true })
     }
 }

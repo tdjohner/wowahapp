@@ -71,8 +71,10 @@ class AddRecipeActivity : AppCompatActivity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 var realmID = serverMap[parent?.getItemAtPosition(position)]
 
+                VolleyWebService.getInstance(applicationContext).clearRequestQueue()
                 recipeList.clear()
-                recipeRecycler?.adapter?.notifyDataSetChanged()
+                recipeRecycler.adapter?.notifyDataSetChanged()
+
                 auctionDataService.getAllRecipes(realmID.toString(), applicationContext, object : AuctionDataService.RecipeHandleArrayListener {
                     override fun onResponse(response: ArrayList<RecipeHandle>) {
                         // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
@@ -81,7 +83,7 @@ class AddRecipeActivity : AppCompatActivity() {
                             auctionDataService.getItemListing(r.getName(), realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
                                 override fun onResponse(response: String) {
                                     val saleprice = response
-                                    model.setAverageSalePrice(saleprice)
+                                    model.setAverageSalePrice(response)
                                     auctionDataService.getRecipeBaseCost(r.getName(), realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
                                         override fun onResponse(response: String) {
                                             val cost = response.toDouble()
@@ -92,6 +94,7 @@ class AddRecipeActivity : AppCompatActivity() {
                                                 model.setLink(sum)
                                                 model.setProfitability()
                                                 recipeAdapter.addItem(model)
+                                                recipeAdapter.notifyDataSetChanged()
                                             }
                                         }
                                         override fun onError(error: String) {
@@ -171,7 +174,6 @@ class AddRecipeActivity : AppCompatActivity() {
                 return false
             }
         })
-
     }
 
     fun calculateExchange(rtrns: Double, cost: Double): String {

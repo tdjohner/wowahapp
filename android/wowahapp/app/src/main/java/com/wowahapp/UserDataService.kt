@@ -10,6 +10,7 @@ object UserDataService {
 
     fun subscribeRecipe(username: String, recipeName: String, realmID: String, applicationContext: Context) {
         val url = "https://wowahapp.com/subscriberecipe/"
+        println(url)
         val params = HashMap<String,String>()
         //These two parameters are pulled from the UI/ recipe objects.
         params["recipeName"] = recipeName
@@ -30,6 +31,7 @@ object UserDataService {
 
     fun unSubRecipe(username: String, recipeName: String, realmID: String, applicationContext: Context) {
         val url = "https://wowahapp.com/unsubrecipe/"
+        println(url)
         val params = HashMap<String,String>()
         //These two parameters are pulled from the UI/ recipe objects.
         params["recipeName"] = recipeName

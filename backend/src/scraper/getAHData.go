@@ -260,14 +260,14 @@ func getAccessToken() string {
 }
 
 func getBlizzSecret() string {
-	json, _ := ioutil.ReadFile("../web.json")
+	json, _ := ioutil.ReadFile("/wowahapp/backend/src/web.json")
 	str := string(json)
 	val := gjson.Get(str, "blizzClient.blizzClientSecret")
 	return string(val.String())
 }
 
 func getBlizzClient() string {
-	json, _ := ioutil.ReadFile("../web.json")
+	json, _ := ioutil.ReadFile("/wowahapp/backend/src/web.json")
 	str := string(json)
 	val := gjson.Get(str, "blizzClient.blizzClientId")
 	return string(val.String())

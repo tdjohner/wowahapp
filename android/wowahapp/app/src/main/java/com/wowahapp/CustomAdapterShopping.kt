@@ -78,7 +78,7 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
 
     @NonNull
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        recipeList.sortByDescending { it.getProfitability() }
+        //recipeList.sortByDescending { it.getProfitability() }
         val itemView = LayoutInflater.from(parent.context)
             .inflate(R.layout.shopping_item, parent, false)
         return MyViewHolder(itemView)
@@ -148,6 +148,9 @@ class CustomAdapterShopping(private val data: List<RecipeModel>) :
 
     fun deepCopyRecipeList(rList: MutableList<RecipeModel>): MutableList<RecipeModel> {
         var newList = mutableListOf<RecipeModel>()
+        if (rList == null) {
+            return newList
+        }
 
         for (r in rList) {
             val copy = r.deepCopy()
