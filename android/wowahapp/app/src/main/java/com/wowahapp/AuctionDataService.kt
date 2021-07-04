@@ -124,7 +124,6 @@ class AuctionDataService {
 
     fun getAllRecipes(realmID: String, applicationContext : Context, recipeHandleListener : RecipeHandleArrayListener ) {
         val url = "https://wowahapp.com/allrecipes/" + realmID
-        println(url)
         
         var recipeList = ArrayList<RecipeHandle>()
         val request = JsonArrayRequest(Request.Method.GET, url, null,

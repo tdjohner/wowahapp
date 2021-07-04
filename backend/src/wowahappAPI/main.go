@@ -50,6 +50,18 @@ type RecipeModel struct {
 	URL string
 }
 
+type NewRecipeModel struct {
+	Name string
+	AvSalePrice int
+	SalePrice int
+	Link int
+	Cost int
+	RealmID int
+	URL string
+	RecipeID int
+
+}
+
 type SubbedItem struct {
 	RealmID	 	string `realmID`
 	RecipeName  string `json:recipeName`
