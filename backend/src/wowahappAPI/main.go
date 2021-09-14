@@ -10,7 +10,6 @@ https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
 
 import (
 	dbh "../databaseHelpers"
-	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -21,8 +20,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"golang.org/x/crypto/acme/autocert"
-	"time"
+
 )
 
 func main() {
@@ -33,6 +31,7 @@ type Recipe struct {
 	ID  int    `json:"ID"`
 	Name string `json:"Name"`
 	URL string `json:"URL"`
+	TierID string `json:"tierID"`
 }
 
 type RecipeSub struct {
@@ -70,22 +69,16 @@ type SubbedItem struct {
 
 func handleRequest() {
 
-	//Citation: configuring muxer to work with autocert lib
-	//https://stackoverflow.com/questions/50311532/autocert-using-gorilla-mux
-	// https://blog.cloudflare.com/exposing-go-on-the-internet/
-	manager := &autocert.Manager {
-		Prompt: autocert.AcceptTOS,
-		Cache: autocert.DirCache("/wowahapp/backend/src/wowahappAPI/secret-dir"),
-		HostPolicy: autocert.HostWhitelist("wowahapp.com", "w"),
-	}
+
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", landingPage)
-	router.HandleFunc("/allrecipes/{realmID}", getAllRecipes)
+	router.HandleFunc("/allrecipes/{realmID}/{profTierID}", getAllRecipes)
 	router.HandleFunc("/allprofessions/", getProfessions)
 	router.HandleFunc("/allexpansions/", getExpansions)
 	router.HandleFunc("/detailedlisting/{recipeName}/{realmID}", getDetailedListing)
 	router.HandleFunc("/getsubbedrecipes/{username}", getSubbedRecipes)
+	router.HandleFunc("/getrecipes/{realmID}/{profession}/{tier}", getRecipes)
 	router.HandleFunc("/itemlisting/{itemName}/{realmID}", getItemListing)
 	router.HandleFunc("/getitem/{itemName}/", getItem).Methods("GET")
 	router.HandleFunc("/subscriberecipe/", createSubbedItem).Methods("POST")
@@ -93,18 +86,8 @@ func handleRequest() {
 	router.HandleFunc("/recipebasecost/{recipeName}/{realmID}", getRecipeBaseCost)
 	router.HandleFunc("/allservers/", getServers)
 
-	server := &http.Server {
-		Addr:	":https",
-		Handler: router,
-		ReadTimeout: 32 * time.Second,
-		WriteTimeout: 64 * time.Second,
-		IdleTimeout: 128 * time.Second,
-		TLSConfig: &tls.Config {
-			GetCertificate: manager.GetCertificate,
-			PreferServerCipherSuites: true,
-		},
-	}
-	log.Fatal(server.ListenAndServeTLS("", ""))
+
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
 func landingPage(res http.ResponseWriter, req *http.Request) {
@@ -160,7 +143,7 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 	}
 	defer db.Close()
 
-	q := "SELECT distinct rcp.id, rcp.name, rcp.craftedItemURL FROM tbl_recipes rcp join tbl_item itm on rcp.name = itm.name join tbl_auctions_current auct on auct.itemID = itm.id where auct.cnctdRealmID = " +vars["realmID"] + ";"
+	q := "SELECT distinct rcp.id, rcp.name, rcp.craftedItemURL, rcp.tierID FROM tbl_recipes rcp join tbl_item itm on rcp.name = itm.name join tbl_auctions_current auct on auct.itemID = itm.id where auct.cnctdRealmID = " +vars["realmID"]+ " and rcp.tierID = " +vars["profTierID"] + ";"
 	fmt.Println(q)
 	result, err := db.Query(q)
 	if err != nil {
@@ -170,10 +153,65 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 
 		for result.Next() {
 			var r Recipe
-			result.Scan(&r.ID, &r.Name, &r.URL)
+			result.Scan(&r.ID, &r.Name, &r.URL, &r.TierID)
 			recipes = append(recipes, r)
 		}
 		json.NewEncoder(res).Encode(recipes)
+	}
+}
+
+func getRecipes(res http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	var recipeModels []RecipeModel
+
+	connectionString := dbh.GetConnectionString()
+	db, err := sql.Open("mysql", connectionString)
+	if err != nil {
+		fmt.Println("Connection to database failed: " + err.Error())
+	}
+	defer db.Close()
+
+	q := fmt.Sprintf(	"SELECT rcp.name, rcp.tierID, exp.name " +
+		"FROM tbl_recipes rcp " +
+		"JOIN tbl_item itm on rcp.name = itm.name " +
+		"JOIN tbl_auctions_current auct on auct.itemID = itm.id " +
+		"JOIN lu_prof_tier_expansion tier on rcp.tierID = tier.profTierID " +
+		"JOIN lu_expansions exp on tier.expansionID = exp.id " +
+		"JOIN lu_professions prof on tier.profID = prof.id " +
+		"WHERE auct.cnctdRealmID = \"%s\" " +
+		"and exp.name = \"%s\"  " +
+		"and prof.name = \"%s\";", vars["realmID"], vars["tier"], vars["profession"])
+
+	result, err := db.Query(q)
+	fmt.Println("omg what is happen")
+	if err != nil {
+		fmt.Println("Error writing to database: " + err.Error())
+	} else {
+
+		var (
+			name string
+			realm int
+			url string
+			rm RecipeModel
+		)
+
+		for result.Next() {
+
+			result.Scan( &name, &realm, &url)
+			rm.Name = name
+			rm.Realm = realm
+			rm.URL = url
+			rm.Cost = dbh.RecipeBaseCost(db, name, strconv.Itoa(realm))
+			listing := dbh.GetAuctionByName(rm.Name, strconv.Itoa(realm), db)
+			rm.SalePrice = listing.Buyout +listing.UnitPrice
+			rm.Cost = dbh.RecipeBaseCost(db, rm.Name, strconv.Itoa(realm))
+			recipeModels = append(recipeModels, rm)
+
+		}
+		if len(recipeModels) == 0 {
+			json.NewEncoder(res).Encode(make([]string, 0))
+		}
+		json.NewEncoder(res).Encode(recipeModels)
 	}
 }
 

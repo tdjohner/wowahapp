@@ -60,8 +60,9 @@ func GetConnectionString() string {
 	// reading in from web.json from https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
 	baseString := "%s:%s@tcp(%s:%s)/%s"
 
-	webFile, _ := os.Open("/wowahapp/backend/src/web.json")
+	webFile, _ := os.Open("C:\\Users\\tdjoh\\Desktop\\wowahapp\\backend\\src\\web.json")
 	defer webFile.Close()
+	fmt.Print(webFile)
 	decoder := json.NewDecoder(webFile)
 	webconfig := WebConfig{}
 	err := decoder.Decode(&webconfig)
@@ -98,11 +99,12 @@ func GetDetailedBreakdown(name string, realmID string, db *sql.DB) []ReagentItem
 func GetAuctionByName(name string, realmID string, db *sql.DB) AuctionSlice {
 	var auct AuctionSlice
 
-	q := fmt.Sprintf(  "SELECT name, unitPrice, buyout FROM tbl_auctions_current auct JOIN tbl_item itm on itm.id = auct.itemID WHERE name = \"%s\" and cnctdRealmID = \"%s\" ORDER BY (unitPrice + buyout) ascending;", name, realmID )
+	q := fmt.Sprintf(  "SELECT name, unitPrice, buyout FROM tbl_auctions_current auct JOIN tbl_item itm on itm.id = auct.itemID WHERE name = \"%s\" and cnctdRealmID = \"%s\" ORDER BY (unitPrice + buyout);", name, realmID )
 
 	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error getting Auction Slice from database: ", err.Error())
+		fmt.Println("Query: ", q)
 	}
 	defer rows.Close()
 	if rows.Next() {
@@ -202,6 +204,8 @@ func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 		"join tbl_reagents rgt on rgt.recipeID = rp.id " +
 		"join tbl_auctions_current auct on auct.itemID = rgt.reagentItemID " +
 		"where rp.name = \"%s\" and cnctdRealmID = %s;",name, realm)
+
+	fmt.Sprint(q)
 
 	rows, err := db.Query(q)
 	if nil != err {
