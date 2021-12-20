@@ -42,6 +42,7 @@ type RecipeSub struct {
 }
 
 type RecipeModel struct {
+	Count int
 	Name string
 	SalePrice int
 	Cost int
@@ -171,7 +172,7 @@ func getRecipes(res http.ResponseWriter, req *http.Request) {
 	}
 	defer db.Close()
 
-	q := fmt.Sprintf(	"SELECT rcp.name, rcp.tierID, exp.name " +
+	q := fmt.Sprintf(	"SELECT  COUNT(*) as count, rcp.name, rcp.tierID, exp.name " +
 		"FROM tbl_recipes rcp " +
 		"JOIN tbl_item itm on rcp.name = itm.name " +
 		"JOIN tbl_auctions_current auct on auct.itemID = itm.id " +
@@ -180,15 +181,18 @@ func getRecipes(res http.ResponseWriter, req *http.Request) {
 		"JOIN lu_professions prof on tier.profID = prof.id " +
 		"WHERE auct.cnctdRealmID = \"%s\" " +
 		"and exp.name = \"%s\"  " +
-		"and prof.name = \"%s\";", vars["realmID"], vars["tier"], vars["profession"])
+		"and prof.name = \"%s\" " +
+		"GROUP BY rcp.name, rcp.tierID, exp.name;", vars["realmID"], vars["tier"], vars["profession"])
 
 	result, err := db.Query(q)
-	fmt.Println("omg what is happen")
+	fmt.Println(q)
+
 	if err != nil {
 		fmt.Println("Error writing to database: " + err.Error())
 	} else {
 
 		var (
+			count int
 			name string
 			realm int
 			url string
@@ -197,8 +201,9 @@ func getRecipes(res http.ResponseWriter, req *http.Request) {
 
 		for result.Next() {
 
-			result.Scan( &name, &realm, &url)
+			result.Scan(&count, &name, &realm, &url)
 			rm.Name = name
+			rm.Count = count
 			rm.Realm = realm
 			rm.URL = url
 			rm.Cost = dbh.RecipeBaseCost(db, name, strconv.Itoa(realm))
