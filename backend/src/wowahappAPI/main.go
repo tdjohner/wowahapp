@@ -45,6 +45,7 @@ type RecipeModel struct {
 	Count int
 	Name string
 	SalePrice int
+	Tier int
 	Cost int
 	Realm int
 	URL string
@@ -172,7 +173,7 @@ func getRecipes(res http.ResponseWriter, req *http.Request) {
 	}
 	defer db.Close()
 
-	q := fmt.Sprintf(	"SELECT  COUNT(*) as count, rcp.name, rcp.tierID, exp.name " +
+	q := fmt.Sprintf(	"SELECT  COUNT(*) as count, rcp.tierID, auct.cnctdRealmID, rcp.name, exp.name  " +
 		"FROM tbl_recipes rcp " +
 		"JOIN tbl_item itm on rcp.name = itm.name " +
 		"JOIN tbl_auctions_current auct on auct.itemID = itm.id " +
@@ -184,6 +185,7 @@ func getRecipes(res http.ResponseWriter, req *http.Request) {
 		"and prof.name = \"%s\" " +
 		"GROUP BY rcp.name, rcp.tierID, exp.name;", vars["realmID"], vars["tier"], vars["profession"])
 
+	println(q)
 	result, err := db.Query(q)
 	fmt.Println(q)
 
@@ -193,23 +195,25 @@ func getRecipes(res http.ResponseWriter, req *http.Request) {
 
 		var (
 			count int
-			name string
+			tier int
 			realm int
+			name string
 			url string
 			rm RecipeModel
 		)
 
 		for result.Next() {
 
-			result.Scan(&count, &name, &realm, &url)
+			result.Scan(&count, &tier, &realm, &name, &url)
+
 			rm.Name = name
 			rm.Count = count
 			rm.Realm = realm
+			rm.Tier = tier
 			rm.URL = url
-			rm.Cost = dbh.RecipeBaseCost(db, name, strconv.Itoa(realm))
 			listing := dbh.GetAuctionByName(rm.Name, strconv.Itoa(realm), db)
-			rm.SalePrice = listing.Buyout +listing.UnitPrice
-			rm.Cost = dbh.RecipeBaseCost(db, rm.Name, strconv.Itoa(realm))
+			rm.SalePrice = listing.Buyout + listing.UnitPrice // always Buyout or UnitPrice will be 0
+			rm.Cost = dbh.RecipeBaseCost(db, rm.Name, strconv.Itoa(realm,))
 			recipeModels = append(recipeModels, rm)
 
 		}

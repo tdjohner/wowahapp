@@ -15,6 +15,7 @@ import java.math.BigDecimal
 import java.util.*
 import kotlin.collections.ArrayList
 
+const val base_URL = "http://10.0.2.2:8080"
 
 class AuctionDataService {
 
@@ -29,6 +30,16 @@ class AuctionDataService {
     }
 
     interface RealmListListener {
+        fun onResponse(response: Map<String, Int>)
+        fun onError(error: String)
+    }
+
+    interface ProfessionListListener {
+        fun onResponse(response: Map<String, Int>)
+        fun onError(error: String)
+    }
+
+    interface ProfTierListListener {
         fun onResponse(response: Map<String, Int>)
         fun onError(error: String)
     }
@@ -50,7 +61,7 @@ class AuctionDataService {
 
     fun getListingDetails(recipeName: String, realmID: String, applicationContext: Context, reagentPairListener: ReagentPairListener) {
         val name = recipeName.replace(" ", "%20") // some shady formatting
-        val url = "https://wowahapp.com/detailedlisting/" + name + "/" + realmID
+        val url = "$base_URL/detailedlisting/$name/$realmID"
         println(url)
         val request = JsonArrayRequest(Request.Method.GET, url, null,
             Response.Listener { response ->
@@ -94,8 +105,7 @@ class AuctionDataService {
 
     //The username parameter could be gotten from App.kt but I want it to be explicitly apparent through usage.
     fun getSubbedRecipes(username: String, applicationContext: Context, recipeModelListener: RecipeModelListener) {
-        val url = "https://wowahapp.com/getsubbedrecipes/" + username
-        println(url)
+        val url = "$base_URL/getsubbedrecipes/$username"
 
         var recipeList = ArrayList<RecipeModel>()
         val request = JsonArrayRequest(Request.Method.GET, url, null,
@@ -122,8 +132,8 @@ class AuctionDataService {
         return RecipeModel(name, String.format("%.2f",revenue) , String.format("%.2f", cost), net, url, realm)
     }
 
-    fun getAllRecipes(realmID: String, applicationContext : Context, recipeHandleListener : RecipeHandleArrayListener ) {
-        val url = "https://wowahapp.com/allrecipes/" + realmID
+    fun getAllRecipes(realmID: String, tierID: String, applicationContext : Context, recipeHandleListener : RecipeHandleArrayListener ) {
+        val url = "$base_URL/allrecipes/$realmID/$tierID"
         
         var recipeList = ArrayList<RecipeHandle>()
         val request = JsonArrayRequest(Request.Method.GET, url, null,
@@ -131,7 +141,7 @@ class AuctionDataService {
                 try {
                     for (i in 0 until response.length()) {
                         val obj = response.getJSONObject(i)
-                        val newHandle = RecipeHandle(obj.getString("Name"), obj.getString("URL"))
+                        val newHandle = RecipeHandle(obj.getString("Name"), obj.getString("URL"), obj.getString("tierID"))
                         recipeList.add( newHandle )
                     }
                     recipeHandleListener.onResponse(recipeList)
@@ -150,8 +160,7 @@ class AuctionDataService {
     }
 
     fun getItemListing(itemName: String, realmID: String, applicationContext: Context, responseListener: VolleyResponseListener) {
-        val url = "https://wowahapp.com/itemlisting/" + itemName.replace(" ", "%20") + "/" +  realmID // crappy URL encoding
-        println(url)
+        val url = base_URL + "/itemlisting/" + itemName.replace(" ", "%20") + "/" +  realmID // crappy URL encoding
         var unitPrice : Double
         var buyoutPrice : Double
         var listingPrice : Double
@@ -173,11 +182,9 @@ class AuctionDataService {
     }
 
     fun getAllProfessions(applicationContext: Context, responseListener: ArrayListListener) {
-        val url = "https://wowahapp.com/allprofessions"
-        println(url)
+        val url = "$base_URL/allprofessions"
         val request = JsonArrayRequest(Request.Method.GET, url, null,
-            Response.Listener {
-                    response -> try {
+            Response.Listener { response -> try {
                 var profArray : ArrayList<String> = ArrayList<String>()
                 for (i in 0 until response.length()) {
                     profArray.add(response.getString(i))
@@ -192,14 +199,14 @@ class AuctionDataService {
     }
 
     fun getAllExpansions(applicationContext: Context, responseListener: ArrayListListener) {
-        val url = "https://wowahapp.com/allexpansions"
-        println(url)
-        val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response -> try {
-            var expArray : ArrayList<String> = ArrayList<String>()
-            for (i in 0 until response.length()) {
-                expArray.add(response.getString(i))
-            }
-            responseListener.onResponse(expArray)
+        val url = "$base_URL/allexpansions"
+        val request = JsonArrayRequest(Request.Method.GET, url, null,
+            Response.Listener { response -> try {
+                var expansionArray : ArrayList<String> = ArrayList<String>()
+                for (i in 0 until response.length()) {
+                    expansionArray.add(response.getString(i))
+                }
+            responseListener.onResponse(expansionArray)
         } catch (e: JSONException) {
             e.printStackTrace()
         }
@@ -208,7 +215,7 @@ class AuctionDataService {
     }
 
     fun getAllServers(applicationContext: Context, responseListener: RealmListListener) {
-        val url = "https://wowahapp.com/allservers"
+        val url = "$base_URL/allservers"
         println(url)
         var tmp: JSONObject
         val request = JsonArrayRequest(Request.Method.GET, url, null, Response.Listener { response -> try {
@@ -226,8 +233,7 @@ class AuctionDataService {
     }
 
     fun getRecipeBaseCost(recipeName: String, realmID: String, applicationContext: Context, responseListener: VolleyResponseListener) {
-        val url = "https://wowahapp.com/recipebasecost/"+recipeName.replace(" ", "%20")+"/"+realmID
-        println(url)
+        val url = "$base_URL/recipebasecost/"+recipeName.replace(" ", "%20")+"/"+realmID
         val request = StringRequest(Request.Method.GET, url, Response.Listener<String> { response -> try {
             responseListener.onResponse(response)
         } catch (e: Exception) {

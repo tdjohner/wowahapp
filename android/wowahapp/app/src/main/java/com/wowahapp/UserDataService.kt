@@ -6,10 +6,12 @@ import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import org.json.JSONObject
 
+
+
 object UserDataService {
 
     fun subscribeRecipe(username: String, recipeName: String, realmID: String, applicationContext: Context) {
-        val url = "https://wowahapp.com/subscriberecipe/"
+        val url = "$base_URL/subscriberecipe/"
         println(url)
         val params = HashMap<String,String>()
         //These two parameters are pulled from the UI/ recipe objects.
@@ -30,7 +32,7 @@ object UserDataService {
     }
 
     fun unSubRecipe(username: String, recipeName: String, realmID: String, applicationContext: Context) {
-        val url = "https://wowahapp.com/unsubrecipe/"
+        val url = "$base_URL/unsubrecipe/"
         println(url)
         val params = HashMap<String,String>()
         //These two parameters are pulled from the UI/ recipe objects.

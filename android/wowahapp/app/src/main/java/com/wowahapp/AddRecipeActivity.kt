@@ -11,6 +11,10 @@ import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.appcompat.widget.SearchView
+import kotlinx.android.synthetic.main.activity_add_recipe.*
+
+
+
 
 
 
@@ -18,9 +22,15 @@ class AddRecipeActivity : AppCompatActivity() {
 
     lateinit var searchTextView : SearchView
     lateinit var serverSelectSpinner : Spinner
+    lateinit var profSelect : Spinner
+    lateinit var profTierSelect : Spinner
     lateinit var recipeRecycler : RecyclerView
     lateinit var confirmButton : Button
     lateinit var serverMap : Map<String, Int>
+    lateinit var professionMap : Map<String, Int>
+    lateinit var expansionList : ArrayList<String>
+    lateinit var professionList : ArrayList<String>
+    lateinit var profTierMap : Map<String, Int>
     private lateinit var recipeAdapter : CustomAdapterShopping
     private lateinit var customAdapterDetails: CustomAdapterDetails
     private val recipeList = ArrayList<RecipeModel>()
@@ -35,6 +45,8 @@ class AddRecipeActivity : AppCompatActivity() {
 
         searchTextView = findViewById<SearchView>(R.id.searchView) as SearchView
         serverSelectSpinner = findViewById<Spinner>(R.id.serverSelectSpinner) as Spinner
+        profSelect = findViewById<Spinner>(R.id.professionSelect) as Spinner
+        profTierSelect = findViewById<Spinner>(R.id.profTierSelect) as Spinner
         confirmButton = findViewById<Button>(R.id.confirmButton) as Button
         recipeRecycler = findViewById(R.id.recipeRecycler)
         recipeRecycler.layoutManager = LinearLayoutManager(applicationContext)
@@ -75,7 +87,7 @@ class AddRecipeActivity : AppCompatActivity() {
                 recipeList.clear()
                 recipeRecycler.adapter?.notifyDataSetChanged()
 
-                auctionDataService.getAllRecipes(realmID.toString(), applicationContext, object : AuctionDataService.RecipeHandleArrayListener {
+                auctionDataService.getAllRecipes(realmID.toString(), "2477", applicationContext, object : AuctionDataService.RecipeHandleArrayListener {
                     override fun onResponse(response: ArrayList<RecipeHandle>) {
                         // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
                         for (r in response) {
@@ -142,6 +154,26 @@ class AddRecipeActivity : AppCompatActivity() {
             override fun onResponse(response: Map<String, Int>) {
                 serverMap = response
                 serverSelectSpinner.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response.keys.toTypedArray())
+            }
+            override fun onError(error: String) {
+                println("Error in getAllExpansions :" + error)
+            }
+        })
+
+        auctionDataService.getAllProfessions(applicationContext, object : AuctionDataService.ArrayListListener {
+            override fun onResponse(response:ArrayList<String>) {
+                professionList = response
+                professionSelect.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response.toTypedArray())
+            }
+            override fun onError(error: String) {
+                println("Error in getAllExpansions :" + error)
+            }
+        })
+
+        auctionDataService.getAllExpansions(applicationContext, object : AuctionDataService.ArrayListListener {
+            override fun onResponse(response:ArrayList<String>) {
+                expansionList = response
+                profTierSelect.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response.toTypedArray())
             }
             override fun onError(error: String) {
                 println("Error in getAllExpansions :" + error)

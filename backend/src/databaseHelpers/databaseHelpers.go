@@ -205,8 +205,6 @@ func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 		"join tbl_auctions_current auct on auct.itemID = rgt.reagentItemID " +
 		"where rp.name = \"%s\" and cnctdRealmID = %s;",name, realm)
 
-	fmt.Sprint(q)
-
 	rows, err := db.Query(q)
 	if nil != err {
 		fmt.Println("Error recipe base cost from database: ", err.Error())
@@ -216,6 +214,7 @@ func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 	for rows.Next() {
 		var reagent ReagentItem
 		_ = rows.Scan(&reagent.Name, &reagent.Quantity, &reagent.Cost, &reagent.Available)
+		println(reagent.Name, reagent.Cost, reagent.Quantity, reagent.Available)
 		reagents[reagent.Name] = append(reagents[reagent.Name], reagent)
 	}
 	if len(reagents) == 0 {
