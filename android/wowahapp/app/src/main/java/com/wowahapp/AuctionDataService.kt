@@ -1,6 +1,7 @@
 package com.wowahapp
 
 import android.content.Context
+import android.support.v4.os.IResultReceiver
 import android.widget.Toast
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
@@ -108,17 +109,22 @@ class AuctionDataService {
         val url = "$base_URL/getsubbedrecipes/$username"
 
         var recipeList = ArrayList<RecipeModel>()
-        val request = JsonArrayRequest(Request.Method.GET, url, null,
-        Response.Listener { response ->
-            try {
-                for (i in 0 until response.length()) {
-                    recipeList.add(jsonToRecipe(response.getJSONObject(i)))
+        val request = JsonArrayRequest(
+            Request.Method.GET,
+            url,
+            null,
+            Response.Listener { response ->
+                try {
+                    for (i in 0 until response.length()) {
+                        recipeList.add(jsonToRecipe(response.getJSONObject(i)))
+                    }
+                    recipeModelListener.onResponse(recipeList)
+                } catch (e: JSONException) {
+                    e.printStackTrace()
                 }
-                recipeModelListener.onResponse(recipeList)
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
-        }, Response.ErrorListener { error -> error.printStackTrace() })
+            },
+            Response.ErrorListener { error -> error.printStackTrace() }
+        )
         VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 
@@ -130,6 +136,32 @@ class AuctionDataService {
         val net = String.format("%.2f",(revenue - cost))
         val url = recipeJSON.getString("URL")
         return RecipeModel(name, String.format("%.2f",revenue) , String.format("%.2f", cost), net, url, realm)
+    }
+
+    fun getRecipes(realmID: String, tierID: String, profession: String, applicationContext: Context, recipeModelListener: RecipeModelListener) {
+        var url = "$base_URL/getrecipes/$realmID/$profession/$tierID"
+        println(url)
+        var recipeList = ArrayList<RecipeModel>()
+        val request = JsonArrayRequest(Request.Method.GET,
+        url,
+        null,
+            Response.Listener { response ->
+                try {
+                    for (i in 0 until response.length()) {
+                        recipeList.add(jsonToRecipe(response.getJSONObject(i)))
+                    }
+                    recipeModelListener.onResponse(recipeList)
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+            },
+            Response.ErrorListener { error -> error.printStackTrace() }
+        )
+        request.setRetryPolicy(DefaultRetryPolicy(
+            50000,
+            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT))
+        VolleyWebService.getInstance(applicationContext).addToRequestQueue(request)
     }
 
     fun getAllRecipes(realmID: String, tierID: String, applicationContext : Context, recipeHandleListener : RecipeHandleArrayListener ) {

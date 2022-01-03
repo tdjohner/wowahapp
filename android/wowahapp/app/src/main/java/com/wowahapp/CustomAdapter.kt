@@ -13,9 +13,11 @@ import com.bumptech.glide.Glide
 
 
 class CustomAdapter(private val data: List<RecipeModel>, application: CustomApplication) :
-    RecyclerView.Adapter<CustomAdapter.MyViewHolder>() {
+    RecyclerView.Adapter<CustomAdapter.MyViewHolder>(), Filterable {
     private var recipeList: MutableList<RecipeModel> = data as MutableList<RecipeModel>
     private val application = application
+    private var safeCopyFlag = 0
+    private var recipeListFull = deepCopyRecipeList(getDataList())
     var callback: RecyclerviewCallbacks<RecipeModel>? = null
     inner class MyViewHolder(val view: View) : RecyclerView.ViewHolder(view){
         fun bind(recipe: RecipeModel, index: Int){
@@ -45,6 +47,40 @@ class CustomAdapter(private val data: List<RecipeModel>, application: CustomAppl
         }
 
     }
+
+
+    override fun getFilter(): Filter {
+        return object : Filter() {
+            override fun performFiltering(p0: CharSequence?): FilterResults {
+                if (safeCopyFlag == 0) {
+                    safeCopyFlag = 1
+                    recipeListFull = deepCopyRecipeList(getDataList())
+                }
+                val charSearch = p0.toString().toLowerCase()
+                var filterList = mutableListOf<RecipeModel>()
+                if (charSearch.isEmpty()) {
+                    filterList = deepCopyRecipeList(recipeListFull)
+                } else {
+                    for (row in recipeListFull) {
+                        if (row.getRecipeName()?.toLowerCase()?.contains(charSearch)!!) {
+                            filterList.add(row.deepCopy())
+                        }
+                    }
+                }
+                val filterResults = FilterResults()
+                filterResults.values = filterList
+                return filterResults
+            }
+            @Suppress("UNCHECKED_CAST")
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                recipeList.clear()
+                recipeList.addAll(results?.values as MutableList<RecipeModel>)
+                notifyDataSetChanged()
+            }
+        }
+    }
+
+
     @NonNull
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         recipeList.sortByDescending { it.getProfitability() }
@@ -67,6 +103,10 @@ class CustomAdapter(private val data: List<RecipeModel>, application: CustomAppl
         notifyDataSetChanged()
     }
 
+    fun getDataList(): MutableList<RecipeModel> {
+        return this.recipeList
+    }
+
     fun addItem(item: RecipeModel){
         recipeList.add(item)
         notifyDataSetChanged()
@@ -75,6 +115,10 @@ class CustomAdapter(private val data: List<RecipeModel>, application: CustomAppl
     fun setItems(items: MutableList<RecipeModel>){
         recipeList = items
         notifyDataSetChanged()
+    }
+
+    fun getRecipeList(): MutableList<RecipeModel> {
+        return recipeList
     }
 
     fun setOnClick(click: RecyclerviewCallbacks<RecipeModel>) {
@@ -109,4 +153,16 @@ class CustomAdapter(private val data: List<RecipeModel>, application: CustomAppl
         return Color.argb(255,red,green, blue)
     }
 
+    fun deepCopyRecipeList(rList: MutableList<RecipeModel>): MutableList<RecipeModel> {
+        var newList = mutableListOf<RecipeModel>()
+        if (rList == null) {
+            return newList
+        }
+
+        for (r in rList) {
+            val copy = r.deepCopy()
+            newList.add(r.deepCopy())
+        }
+        return newList
+    }
 }

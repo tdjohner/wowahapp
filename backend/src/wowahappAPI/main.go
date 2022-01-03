@@ -9,18 +9,19 @@ https://stackoverflow.com/questions/16465705/how-to-handle-configuration-in-go
 */
 
 import (
-	dbh "../databaseHelpers"
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
+	dbh "databaseHelpers"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -28,50 +29,47 @@ func main() {
 }
 
 type Recipe struct {
-	ID  int    `json:"ID"`
-	Name string `json:"Name"`
-	URL string `json:"URL"`
+	ID     int    `json:"ID"`
+	Name   string `json:"Name"`
+	URL    string `json:"URL"`
 	TierID string `json:"tierID"`
 }
 
 type RecipeSub struct {
-	ID  int    `json:"id"`
-	Name string `json:"name"`
-	Realm int `json:"realmID"`
-	URL string `json:"craftedItemURL"`
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Realm int    `json:"realmID"`
+	URL   string `json:"craftedItemURL"`
 }
 
 type RecipeModel struct {
-	Count int
-	Name string
+	Count     int
+	Name      string
 	SalePrice int
-	Tier int
-	Cost int
-	Realm int
-	URL string
+	Tier      int
+	Cost      int
+	Realm     int
+	URL       string
 }
 
 type NewRecipeModel struct {
-	Name string
+	Name        string
 	AvSalePrice int
-	SalePrice int
-	Link int
-	Cost int
-	RealmID int
-	URL string
-	RecipeID int
-
+	SalePrice   int
+	Link        int
+	Cost        int
+	RealmID     int
+	URL         string
+	RecipeID    int
 }
 
 type SubbedItem struct {
-	RealmID	 	string `realmID`
-	RecipeName  string `json:recipeName`
-	Username 	string `json:username`
+	RealmID    string `realmID`
+	RecipeName string `json:recipeName`
+	Username   string `json:username`
 }
 
 func handleRequest() {
-
-
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", landingPage)
@@ -87,7 +85,6 @@ func handleRequest() {
 	router.HandleFunc("/unsubrecipe/", removeSubbedItem).Methods("POST")
 	router.HandleFunc("/recipebasecost/{recipeName}/{realmID}", getRecipeBaseCost)
 	router.HandleFunc("/allservers/", getServers)
-
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
@@ -105,7 +102,7 @@ func getDetailedListing(res http.ResponseWriter, req *http.Request) {
 		fmt.Println("Error connecting to database: ", err.Error())
 	}
 	defer db.Close()
-	reagentDetails := dbh.GetDetailedBreakdown(vars["recipeName"], vars["realmID"], db )
+	reagentDetails := dbh.GetDetailedBreakdown(vars["recipeName"], vars["realmID"], db)
 	json.NewEncoder(res).Encode(reagentDetails)
 }
 
@@ -145,7 +142,7 @@ func getAllRecipes(res http.ResponseWriter, req *http.Request) {
 	}
 	defer db.Close()
 
-	q := "SELECT distinct rcp.id, rcp.name, rcp.craftedItemURL, rcp.tierID FROM tbl_recipes rcp join tbl_item itm on rcp.name = itm.name join tbl_auctions_current auct on auct.itemID = itm.id where auct.cnctdRealmID = " +vars["realmID"]+ " and rcp.tierID = " +vars["profTierID"] + ";"
+	q := "SELECT distinct rcp.id, rcp.name, rcp.craftedItemURL, rcp.tierID FROM tbl_recipes rcp join tbl_item itm on rcp.name = itm.name join tbl_auctions_current auct on auct.itemID = itm.id where auct.cnctdRealmID = " + vars["realmID"] + " and rcp.tierID = " + vars["profTierID"] + ";"
 	fmt.Println(q)
 	result, err := db.Query(q)
 	if err != nil {
@@ -173,16 +170,16 @@ func getRecipes(res http.ResponseWriter, req *http.Request) {
 	}
 	defer db.Close()
 
-	q := fmt.Sprintf(	"SELECT  COUNT(*) as count, rcp.tierID, auct.cnctdRealmID, rcp.name, exp.name  " +
-		"FROM tbl_recipes rcp " +
-		"JOIN tbl_item itm on rcp.name = itm.name " +
-		"JOIN tbl_auctions_current auct on auct.itemID = itm.id " +
-		"JOIN lu_prof_tier_expansion tier on rcp.tierID = tier.profTierID " +
-		"JOIN lu_expansions exp on tier.expansionID = exp.id " +
-		"JOIN lu_professions prof on tier.profID = prof.id " +
-		"WHERE auct.cnctdRealmID = \"%s\" " +
-		"and exp.name = \"%s\"  " +
-		"and prof.name = \"%s\" " +
+	q := fmt.Sprintf("SELECT  COUNT(*) as count, rcp.tierID, auct.cnctdRealmID, rcp.name, exp.name  "+
+		"FROM tbl_recipes rcp "+
+		"JOIN tbl_item itm on rcp.name = itm.name "+
+		"JOIN tbl_auctions_current auct on auct.itemID = itm.id "+
+		"JOIN lu_prof_tier_expansion tier on rcp.tierID = tier.profTierID "+
+		"JOIN lu_expansions exp on tier.expansionID = exp.id "+
+		"JOIN lu_professions prof on tier.profID = prof.id "+
+		"WHERE auct.cnctdRealmID = \"%s\" "+
+		"and exp.name = \"%s\"  "+
+		"and prof.name = \"%s\" "+
 		"GROUP BY rcp.name, rcp.tierID, exp.name;", vars["realmID"], vars["tier"], vars["profession"])
 
 	println(q)
@@ -195,11 +192,11 @@ func getRecipes(res http.ResponseWriter, req *http.Request) {
 
 		var (
 			count int
-			tier int
+			tier  int
 			realm int
-			name string
-			url string
-			rm RecipeModel
+			name  string
+			url   string
+			rm    RecipeModel
 		)
 
 		for result.Next() {
@@ -213,7 +210,7 @@ func getRecipes(res http.ResponseWriter, req *http.Request) {
 			rm.URL = url
 			listing := dbh.GetAuctionByName(rm.Name, strconv.Itoa(realm), db)
 			rm.SalePrice = listing.Buyout + listing.UnitPrice // always Buyout or UnitPrice will be 0
-			rm.Cost = dbh.RecipeBaseCost(db, rm.Name, strconv.Itoa(realm,))
+			rm.Cost = dbh.RecipeBaseCost(db, rm.Name, strconv.Itoa(realm))
 			recipeModels = append(recipeModels, rm)
 
 		}
@@ -268,7 +265,7 @@ func getUsersSubs(username string) []RecipeSub {
 	}
 	defer db.Close()
 
-	q := 	"select distinct rcp.id, rcp.name, sub.realmID, rcp.craftedItemURL " +
+	q := "select distinct rcp.id, rcp.name, sub.realmID, rcp.craftedItemURL " +
 		"FROM tbl_recipes rcp " +
 		"join tbl_item itm on rcp.name = itm.name " +
 		"join tbl_auctions_current auct on auct.itemID = itm.id " +
@@ -354,7 +351,6 @@ func removeSubbedItem(res http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(res).Encode("{\"success\": \"true\"}")
 }
 
-
 func getProfessions(res http.ResponseWriter, req *http.Request) {
 
 	db, err := sql.Open("mysql", dbh.GetConnectionString())
@@ -398,8 +394,6 @@ func getRecipeBaseCost(res http.ResponseWriter, req *http.Request) {
 	defer db.Close()
 
 	cost := dbh.RecipeBaseCost(db, vars["recipeName"], vars["realmID"])
-	convertedCost := float64(cost)/10000
+	convertedCost := float64(cost) / 10000
 	json.NewEncoder(res).Encode(convertedCost)
 }
-
- 

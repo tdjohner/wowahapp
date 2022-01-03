@@ -19,40 +19,40 @@ type WebConfig struct {
 }
 
 type WoWItem struct {
-	Id int `db:id`
-	Name string `db:name`
-	Quality string `db:quality`
-	Class string `db:class`
-	Subclass string `db:subclass`
+	Id            int    `db:id`
+	Name          string `db:name`
+	Quality       string `db:quality`
+	Class         string `db:class`
+	Subclass      string `db:subclass`
 	InventoryType string `db:inventorytype`
-	Level int `db:level`
-	PurchasePrice int `db:purchaseprice`
-	SellPrice int `db:sellprice`
-	IsEquipable bool `db:isequipable`
-	IsStackable bool `db:isstackable`
+	Level         int    `db:level`
+	PurchasePrice int    `db:purchaseprice`
+	SellPrice     int    `db:sellprice`
+	IsEquipable   bool   `db:isequipable`
+	IsStackable   bool   `db:isstackable`
 }
 
 type AuctionSlice struct {
-	Name string `db:name`
-	UnitPrice int `db:unitPrice`
-	Buyout int `db:buyout`
+	Name      string `db:name`
+	UnitPrice int    `db:unitPrice`
+	Buyout    int    `db:buyout`
 }
 
 type ReagentItem struct {
-	Name string `db:name`
-	Quantity int `db:quantity`
-	Cost int `db:cost`
-	Available int `db:available`
+	Name      string `db:name`
+	Quantity  int    `db:quantity`
+	Cost      int    `db:cost`
+	Available int    `db:available`
 }
 
 type ReagentListing struct {
 	quantity int
-	cost int
+	cost     int
 }
 
 type GameServer struct {
-	CnctdRealmID int `db:cnctdRealmID`
-	RealmName	string `db:realmName`
+	CnctdRealmID int    `db:cnctdRealmID`
+	RealmName    string `db:realmName`
 }
 
 //Get the connection string from our config
@@ -72,14 +72,14 @@ func GetConnectionString() string {
 	return fmt.Sprintf(baseString, webconfig.ConnectionString.User, webconfig.ConnectionString.Pw, webconfig.ConnectionString.Ip, webconfig.ConnectionString.Port, webconfig.ConnectionString.Schema)
 }
 
-func GetDetailedBreakdown(name string, realmID string, db *sql.DB) []ReagentItem{
+func GetDetailedBreakdown(name string, realmID string, db *sql.DB) []ReagentItem {
 	var reagents = []ReagentItem{}
 
-	q := fmt.Sprintf("select rgt.name, rgt.quantity, auct.unitPrice + auct.buyout as cost, auct.quantity as available " +
-		"from tbl_recipes rp " +
-	"join tbl_reagents rgt on rgt.recipeID = rp.id " +
-	"join tbl_auctions_current auct on auct.itemID = rgt.reagentItemID " +
-	"where rp.name = \"%s\" and cnctdRealmID = %s;",name, realmID)
+	q := fmt.Sprintf("select rgt.name, rgt.quantity, auct.unitPrice + auct.buyout as cost, auct.quantity as available "+
+		"from tbl_recipes rp "+
+		"join tbl_reagents rgt on rgt.recipeID = rp.id "+
+		"join tbl_auctions_current auct on auct.itemID = rgt.reagentItemID "+
+		"where rp.name = \"%s\" and cnctdRealmID = %s;", name, realmID)
 
 	rows, err := db.Query(q)
 	if nil != err {
@@ -95,11 +95,10 @@ func GetDetailedBreakdown(name string, realmID string, db *sql.DB) []ReagentItem
 	return reagents
 }
 
-
 func GetAuctionByName(name string, realmID string, db *sql.DB) AuctionSlice {
 	var auct AuctionSlice
 
-	q := fmt.Sprintf(  "SELECT name, unitPrice, buyout FROM tbl_auctions_current auct JOIN tbl_item itm on itm.id = auct.itemID WHERE name = \"%s\" and cnctdRealmID = \"%s\" ORDER BY (unitPrice + buyout);", name, realmID )
+	q := fmt.Sprintf("SELECT name, unitPrice, buyout FROM tbl_auctions_current auct JOIN tbl_item itm on itm.id = auct.itemID WHERE name = \"%s\" and cnctdRealmID = \"%s\" ORDER BY (unitPrice + buyout);", name, realmID)
 
 	rows, err := db.Query(q)
 	if nil != err {
@@ -199,11 +198,11 @@ func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 	reagents := make(map[string][]ReagentItem)
 	cost := 0
 
-	q := fmt.Sprintf("select rgt.name, rgt.quantity, auct.unitPrice + auct.buyout as cost, auct.quantity as available " +
-		"from tbl_recipes rp " +
-		"join tbl_reagents rgt on rgt.recipeID = rp.id " +
-		"join tbl_auctions_current auct on auct.itemID = rgt.reagentItemID " +
-		"where rp.name = \"%s\" and cnctdRealmID = %s;",name, realm)
+	q := fmt.Sprintf("select rgt.name, rgt.quantity, auct.unitPrice + auct.buyout as cost, auct.quantity as available "+
+		"from tbl_recipes rp "+
+		"join tbl_reagents rgt on rgt.recipeID = rp.id "+
+		"join tbl_auctions_current auct on auct.itemID = rgt.reagentItemID "+
+		"where rp.name = \"%s\" and cnctdRealmID = %s;", name, realm)
 
 	rows, err := db.Query(q)
 	if nil != err {
@@ -214,7 +213,6 @@ func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 	for rows.Next() {
 		var reagent ReagentItem
 		_ = rows.Scan(&reagent.Name, &reagent.Quantity, &reagent.Cost, &reagent.Available)
-		println(reagent.Name, reagent.Cost, reagent.Quantity, reagent.Available)
 		reagents[reagent.Name] = append(reagents[reagent.Name], reagent)
 	}
 	if len(reagents) == 0 {
@@ -229,8 +227,8 @@ func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 
 		//get the number of reagents required, at the cheapest listing
 		required := reagents[key][0].Quantity
-		 r, x  := 0, 0
-		for r < required && x < len(reagents[key])  {
+		r, x := 0, 0
+		for r < required && x < len(reagents[key]) {
 			if reagents[key][x].Available > 0 {
 				cost = cost + reagents[key][x].Cost
 				reagents[key][x].Available = reagents[key][x].Available - 1
@@ -246,5 +244,3 @@ func RecipeBaseCost(db *sql.DB, name string, realm string) int {
 	}
 	return cost
 }
-
-

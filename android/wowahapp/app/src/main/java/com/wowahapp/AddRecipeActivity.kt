@@ -12,10 +12,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.appcompat.widget.SearchView
 import kotlinx.android.synthetic.main.activity_add_recipe.*
+import android.widget.AdapterView
 
-
-
-
+import android.widget.AdapterView.OnItemSelectedListener
+import com.android.volley.RetryPolicy
 
 
 class AddRecipeActivity : AppCompatActivity() {
@@ -27,11 +27,9 @@ class AddRecipeActivity : AppCompatActivity() {
     lateinit var recipeRecycler : RecyclerView
     lateinit var confirmButton : Button
     lateinit var serverMap : Map<String, Int>
-    lateinit var professionMap : Map<String, Int>
     lateinit var expansionList : ArrayList<String>
     lateinit var professionList : ArrayList<String>
-    lateinit var profTierMap : Map<String, Int>
-    private lateinit var recipeAdapter : CustomAdapterShopping
+    private lateinit var recipeAdapter : CustomAdapter
     private lateinit var customAdapterDetails: CustomAdapterDetails
     private val recipeList = ArrayList<RecipeModel>()
     private val detailList = ArrayList<DetailedEntries>()
@@ -50,7 +48,7 @@ class AddRecipeActivity : AppCompatActivity() {
         confirmButton = findViewById<Button>(R.id.confirmButton) as Button
         recipeRecycler = findViewById(R.id.recipeRecycler)
         recipeRecycler.layoutManager = LinearLayoutManager(applicationContext)
-        recipeAdapter = CustomAdapterShopping(recipeList)
+        recipeAdapter = CustomAdapter(recipeList, application as CustomApplication)
         recipeRecycler.adapter = recipeAdapter
 
         recipeAdapter.setOnClick(object : RecyclerviewCallbacks<RecipeModel> {
@@ -87,43 +85,59 @@ class AddRecipeActivity : AppCompatActivity() {
                 recipeList.clear()
                 recipeRecycler.adapter?.notifyDataSetChanged()
 
-                auctionDataService.getAllRecipes(realmID.toString(), "2477", applicationContext, object : AuctionDataService.RecipeHandleArrayListener {
-                    override fun onResponse(response: ArrayList<RecipeHandle>) {
-                        // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
-                        for (r in response) {
-                            var model = RecipeModel(r.getName(), "x", "0.0", "0.0", r.getURL(), realmID)
-                            auctionDataService.getItemListing(r.getName(), realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
-                                override fun onResponse(response: String) {
-                                    val saleprice = response
-                                    model.setAverageSalePrice(response)
-                                    auctionDataService.getRecipeBaseCost(r.getName(), realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
-                                        override fun onResponse(response: String) {
-                                            val cost = response.toDouble()
-                                            val sum: String
-                                            if (cost.toFloat() > 0) { // only show recipes that can be filled on AH
-                                                sum = calculateExchange(saleprice.toDouble(), cost)
-                                                model.setSalePrice(String.format("%.2f", cost))
-                                                model.setLink(sum)
-                                                model.setProfitability()
-                                                recipeAdapter.addItem(model)
-                                                recipeAdapter.notifyDataSetChanged()
-                                            }
-                                        }
-                                        override fun onError(error: String) {
-                                            println("Error getting base recipe cost: " + error)
-                                        }
-                                    })
-                                }
-                                override fun onError(error: String) {
-                                    println("Error getting price listing data: " + error)
-                                }
-                            })
+                auctionDataService.getRecipes(serverMap[serverSelectSpinner.selectedItem].toString(),
+                    profTierSelect.selectedItem as String,
+                    professionSelect.selectedItem as String,
+                    applicationContext,
+                    object: AuctionDataService.RecipeModelListener {
+                        override fun onResponse(response: ArrayList<RecipeModel>) {
+                            for (r in response) {
+                                recipeAdapter.addItem(r)
+                            }
+                        }
+                        override fun onError(error: String) {
+                            println("Error getting subscribed item JSON: " + error)
                         }
                     }
-                    override fun onError(error: String) {
-                        println("Error in getAllRecipes: " + error)
-                    }
-                })
+                )
+//
+//                auctionDataService.getAllRecipes(realmID.toString(), "2477", applicationContext, object : AuctionDataService.RecipeHandleArrayListener {
+//                    override fun onResponse(response: ArrayList<RecipeHandle>) {
+//                        // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
+//                        for (r in response) {
+//                            var model = RecipeModel(r.getName(), "x", "0.0", "0.0", r.getURL(), realmID)
+//                            auctionDataService.getItemListing(r.getName(), realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
+//                                override fun onResponse(response: String) {
+//                                    val saleprice = response
+//                                    model.setAverageSalePrice(response)
+//                                    auctionDataService.getRecipeBaseCost(r.getName(), realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
+//                                        override fun onResponse(response: String) {
+//                                            val cost = response.toDouble()
+//                                            val sum: String
+//                                            if (cost.toFloat() > 0) { // only show recipes that can be filled on AH
+//                                                sum = calculateExchange(saleprice.toDouble(), cost)
+//                                                model.setSalePrice(String.format("%.2f", cost))
+//                                                model.setLink(sum)
+//                                                model.setProfitability()
+//                                                recipeAdapter.addItem(model)
+//                                                recipeAdapter.notifyDataSetChanged()
+//                                            }
+//                                        }
+//                                        override fun onError(error: String) {
+//                                            println("Error getting base recipe cost: " + error)
+//                                        }
+//                                    })
+//                                }
+//                                override fun onError(error: String) {
+//                                    println("Error getting price listing data: " + error)
+//                                }
+//                            })
+//                        }
+//                    }
+//                    override fun onError(error: String) {
+//                        println("Error in getAllRecipes: " + error)
+//                    }
+//                })
             }
         }
 

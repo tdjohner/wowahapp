@@ -20,7 +20,7 @@
     <Spinner
         android:id="@+id/serverSelectSpinner"
         android:layout_width="320dp"
-        android:layout_height="46dp"
+        android:layout_height="48dp"
         android:layout_marginTop="32dp"
         android:background="@drawable/text_focus"
         android:gravity="center_vertical"
@@ -33,7 +33,7 @@
     <Spinner
         android:id="@+id/professionSelect"
         android:layout_width="320dp"
-        android:layout_height="46dp"
+        android:layout_height="48dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/text_focus"
         android:gravity="center_vertical"
@@ -45,7 +45,7 @@
     <Spinner
         android:id="@+id/profTierSelect"
         android:layout_width="320dp"
-        android:layout_height="46dp"
+        android:layout_height="48dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/text_focus"
         android:gravity="center_vertical"
@@ -57,7 +57,7 @@
     <androidx.appcompat.widget.SearchView
         android:id="@+id/searchView"
         android:layout_width="320dp"
-        android:layout_height="46dp"
+        android:layout_height="48dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/textviewhighlight"
         android:gravity="center_vertical"
