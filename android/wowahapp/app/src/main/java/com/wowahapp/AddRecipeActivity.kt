@@ -22,8 +22,8 @@ class AddRecipeActivity : AppCompatActivity() {
 
     lateinit var searchTextView : SearchView
     lateinit var serverSelectSpinner : Spinner
-    lateinit var profSelect : Spinner
-    lateinit var profTierSelect : Spinner
+    lateinit var profSelectSpinner : Spinner
+    lateinit var profTierSelectSpinner : Spinner
     lateinit var recipeRecycler : RecyclerView
     lateinit var confirmButton : Button
     lateinit var serverMap : Map<String, Int>
@@ -43,8 +43,8 @@ class AddRecipeActivity : AppCompatActivity() {
 
         searchTextView = findViewById<SearchView>(R.id.searchView) as SearchView
         serverSelectSpinner = findViewById<Spinner>(R.id.serverSelectSpinner) as Spinner
-        profSelect = findViewById<Spinner>(R.id.professionSelect) as Spinner
-        profTierSelect = findViewById<Spinner>(R.id.profTierSelect) as Spinner
+        profSelectSpinner = findViewById<Spinner>(R.id.professionSelect) as Spinner
+        profTierSelectSpinner = findViewById<Spinner>(R.id.profTierSelect) as Spinner
         confirmButton = findViewById<Button>(R.id.confirmButton) as Button
         recipeRecycler = findViewById(R.id.recipeRecycler)
         recipeRecycler.layoutManager = LinearLayoutManager(applicationContext)
@@ -100,44 +100,72 @@ class AddRecipeActivity : AppCompatActivity() {
                         }
                     }
                 )
-//
-//                auctionDataService.getAllRecipes(realmID.toString(), "2477", applicationContext, object : AuctionDataService.RecipeHandleArrayListener {
-//                    override fun onResponse(response: ArrayList<RecipeHandle>) {
-//                        // now we loop over the recipe names and populate the RecipeModel objects then add them to the adapter
-//                        for (r in response) {
-//                            var model = RecipeModel(r.getName(), "x", "0.0", "0.0", r.getURL(), realmID)
-//                            auctionDataService.getItemListing(r.getName(), realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
-//                                override fun onResponse(response: String) {
-//                                    val saleprice = response
-//                                    model.setAverageSalePrice(response)
-//                                    auctionDataService.getRecipeBaseCost(r.getName(), realmID.toString(), applicationContext, object : AuctionDataService.VolleyResponseListener {
-//                                        override fun onResponse(response: String) {
-//                                            val cost = response.toDouble()
-//                                            val sum: String
-//                                            if (cost.toFloat() > 0) { // only show recipes that can be filled on AH
-//                                                sum = calculateExchange(saleprice.toDouble(), cost)
-//                                                model.setSalePrice(String.format("%.2f", cost))
-//                                                model.setLink(sum)
-//                                                model.setProfitability()
-//                                                recipeAdapter.addItem(model)
-//                                                recipeAdapter.notifyDataSetChanged()
-//                                            }
-//                                        }
-//                                        override fun onError(error: String) {
-//                                            println("Error getting base recipe cost: " + error)
-//                                        }
-//                                    })
-//                                }
-//                                override fun onError(error: String) {
-//                                    println("Error getting price listing data: " + error)
-//                                }
-//                            })
-//                        }
-//                    }
-//                    override fun onError(error: String) {
-//                        println("Error in getAllRecipes: " + error)
-//                    }
-//                })
+            }
+        }
+
+        profTierSelectSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                var realmID = serverMap[parent?.getItemAtPosition(position)]
+
+                VolleyWebService.getInstance(applicationContext).clearRequestQueue()
+                recipeList.clear()
+                recipeRecycler.adapter?.notifyDataSetChanged()
+
+                auctionDataService.getRecipes(serverMap[serverSelectSpinner.selectedItem].toString(),
+                    profTierSelect.selectedItem as String,
+                    professionSelect.selectedItem as String,
+                    applicationContext,
+                    object : AuctionDataService.RecipeModelListener {
+                        override fun onResponse(response: ArrayList<RecipeModel>) {
+                            for (r in response) {
+                                recipeAdapter.addItem(r)
+                            }
+                        }
+
+                        override fun onError(error: String) {
+                            println("Error getting subscribed item JSON: " + error)
+                        }
+                    }
+                )
+            }
+        }
+
+        profSelectSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                var realmID = serverMap[parent?.getItemAtPosition(position)]
+
+                VolleyWebService.getInstance(applicationContext).clearRequestQueue()
+                recipeList.clear()
+                recipeRecycler.adapter?.notifyDataSetChanged()
+
+                auctionDataService.getRecipes(serverMap[serverSelectSpinner.selectedItem].toString(),
+                    profTierSelect.selectedItem as String,
+                    professionSelect.selectedItem as String,
+                    applicationContext,
+                    object : AuctionDataService.RecipeModelListener {
+                        override fun onResponse(response: ArrayList<RecipeModel>) {
+                            for (r in response) {
+                                recipeAdapter.addItem(r)
+                            }
+                        }
+
+                        override fun onError(error: String) {
+                            println("Error getting subscribed item JSON: " + error)
+                        }
+                    }
+                )
             }
         }
 
