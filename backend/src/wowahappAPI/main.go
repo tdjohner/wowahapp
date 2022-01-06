@@ -48,8 +48,10 @@ type RecipeModel struct {
 	SalePrice int
 	Tier      int
 	Cost      int
-	Realm     int
+	RealmID   int
+	Exp       string
 	URL       string
+	RecipeID  int
 }
 
 type NewRecipeModel struct {
@@ -170,7 +172,7 @@ func getRecipes(res http.ResponseWriter, req *http.Request) {
 	}
 	defer db.Close()
 
-	q := fmt.Sprintf("SELECT  COUNT(*) as count, rcp.tierID, auct.cnctdRealmID, rcp.name, exp.name  "+
+	q := fmt.Sprintf("SELECT  COUNT(*) as count, rcp.tierID, auct.cnctdRealmID, rcp.name, exp.name, rcp.craftedItemURL  "+
 		"FROM tbl_recipes rcp "+
 		"JOIN tbl_item itm on rcp.name = itm.name "+
 		"JOIN tbl_auctions_current auct on auct.itemID = itm.id "+
@@ -180,11 +182,10 @@ func getRecipes(res http.ResponseWriter, req *http.Request) {
 		"WHERE auct.cnctdRealmID = \"%s\" "+
 		"and exp.name = \"%s\"  "+
 		"and prof.name = \"%s\" "+
-		"GROUP BY rcp.name, rcp.tierID, exp.name;", vars["realmID"], vars["tier"], vars["profession"])
+		"GROUP BY rcp.name, rcp.tierID, exp.name, rcp.craftedItemURL;", vars["realmID"], vars["tier"], vars["profession"])
 
 	println(q)
 	result, err := db.Query(q)
-	fmt.Println(q)
 
 	if err != nil {
 		fmt.Println("Error writing to database: " + err.Error())
@@ -196,20 +197,22 @@ func getRecipes(res http.ResponseWriter, req *http.Request) {
 			realm int
 			name  string
 			url   string
+			exp   string
 			rm    RecipeModel
 		)
 
 		for result.Next() {
 
-			result.Scan(&count, &tier, &realm, &name, &url)
+			result.Scan(&count, &tier, &realm, &name, &exp, &url)
 
 			rm.Name = name
 			rm.Count = count
-			rm.Realm = realm
+			rm.RealmID = realm
 			rm.Tier = tier
 			rm.URL = url
+			rm.Exp = exp
 			listing := dbh.GetAuctionByName(rm.Name, strconv.Itoa(realm), db)
-			rm.SalePrice = listing.Buyout + listing.UnitPrice // always Buyout or UnitPrice will be 0
+			rm.SalePrice = listing.Buyout + listing.UnitPrice // always either Buyout or UnitPrice will be 0
 			rm.Cost = dbh.RecipeBaseCost(db, rm.Name, strconv.Itoa(realm))
 			recipeModels = append(recipeModels, rm)
 
@@ -247,7 +250,7 @@ func getSubbedRecipes(res http.ResponseWriter, req *http.Request) {
 		newRecipe.Name = recipeList[i].Name
 		newRecipe.SalePrice = listing.Buyout + listing.UnitPrice
 		newRecipe.Cost = dbh.RecipeBaseCost(db, recipeList[i].Name, convertedRealmID)
-		newRecipe.Realm = recipeList[i].Realm
+		newRecipe.RealmID = recipeList[i].Realm
 		newRecipe.URL = recipeList[i].URL
 		recipeModels = append(recipeModels, newRecipe)
 	}

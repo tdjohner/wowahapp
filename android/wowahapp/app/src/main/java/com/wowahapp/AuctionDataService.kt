@@ -132,7 +132,7 @@ class AuctionDataService {
         val name = recipeJSON.getString("Name")
         val revenue = recipeJSON.getString("SalePrice").toDouble()/10000
         val cost = recipeJSON.getString("Cost").toDouble()/10000
-        val realm = recipeJSON.getString("Realm").toInt()
+        val realm = recipeJSON.getString("RealmID").toInt()
         val net = String.format("%.2f",(revenue - cost))
         val url = recipeJSON.getString("URL")
         return RecipeModel(name, String.format("%.2f",revenue) , String.format("%.2f", cost), net, url, realm)

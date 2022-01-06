@@ -127,7 +127,6 @@ class AddRecipeActivity : AppCompatActivity() {
                                 recipeAdapter.addItem(r)
                             }
                         }
-
                         override fun onError(error: String) {
                             println("Error getting subscribed item JSON: " + error)
                         }
