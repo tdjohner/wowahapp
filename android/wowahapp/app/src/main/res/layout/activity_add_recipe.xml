@@ -19,12 +19,10 @@
 
     <Spinner
         android:id="@+id/serverSelectSpinner"
-        android:layout_width="320dp"
-        android:layout_height="48dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:background="@drawable/text_focus"
-        android:gravity="center_vertical"
-        android:textColor="#FFFFFF"
+        android:popupBackground="@android:color/holo_purple"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.494"
         app:layout_constraintStart_toStartOf="parent"
@@ -32,24 +30,20 @@
 
     <Spinner
         android:id="@+id/professionSelect"
-        android:layout_width="320dp"
-        android:layout_height="48dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:background="@drawable/text_focus"
-        android:gravity="center_vertical"
-        android:textColor="#FFFFFF"
+        android:popupBackground="@android:color/holo_purple"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/serverSelectSpinner" />
 
     <Spinner
         android:id="@+id/profTierSelect"
-        android:layout_width="320dp"
-        android:layout_height="48dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:background="@drawable/text_focus"
-        android:gravity="center_vertical"
-        android:textColor="#FFFFFF"
+        android:popupBackground="@android:color/holo_purple"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/professionSelect" />

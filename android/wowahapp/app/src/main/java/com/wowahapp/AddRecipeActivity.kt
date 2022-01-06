@@ -29,7 +29,7 @@ class AddRecipeActivity : AppCompatActivity() {
     lateinit var serverMap : Map<String, Int>
     lateinit var expansionList : ArrayList<String>
     lateinit var professionList : ArrayList<String>
-    private lateinit var recipeAdapter : CustomAdapter
+    private lateinit var recipeAdapter : CustomAdapterShopping
     private lateinit var customAdapterDetails: CustomAdapterDetails
     private val recipeList = ArrayList<RecipeModel>()
     private val detailList = ArrayList<DetailedEntries>()
@@ -48,7 +48,7 @@ class AddRecipeActivity : AppCompatActivity() {
         confirmButton = findViewById<Button>(R.id.confirmButton) as Button
         recipeRecycler = findViewById(R.id.recipeRecycler)
         recipeRecycler.layoutManager = LinearLayoutManager(applicationContext)
-        recipeAdapter = CustomAdapter(recipeList, application as CustomApplication)
+        recipeAdapter = CustomAdapterShopping(recipeList)
         recipeRecycler.adapter = recipeAdapter
 
         recipeAdapter.setOnClick(object : RecyclerviewCallbacks<RecipeModel> {
@@ -195,7 +195,7 @@ class AddRecipeActivity : AppCompatActivity() {
         auctionDataService.getAllServers(applicationContext, object : AuctionDataService.RealmListListener {
             override fun onResponse(response: Map<String, Int>) {
                 serverMap = response
-                serverSelectSpinner.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response.keys.toTypedArray())
+                serverSelectSpinner.adapter = ArrayAdapter<String>(applicationContext, R.layout.spinner_text, response.keys.toTypedArray())
             }
             override fun onError(error: String) {
                 println("Error in getAllExpansions :" + error)
@@ -205,7 +205,7 @@ class AddRecipeActivity : AppCompatActivity() {
         auctionDataService.getAllProfessions(applicationContext, object : AuctionDataService.ArrayListListener {
             override fun onResponse(response:ArrayList<String>) {
                 professionList = response
-                professionSelect.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response.toTypedArray())
+                professionSelect.adapter = ArrayAdapter<String>(applicationContext, R.layout.spinner_text, response.toTypedArray())
             }
             override fun onError(error: String) {
                 println("Error in getAllExpansions :" + error)
@@ -215,7 +215,7 @@ class AddRecipeActivity : AppCompatActivity() {
         auctionDataService.getAllExpansions(applicationContext, object : AuctionDataService.ArrayListListener {
             override fun onResponse(response:ArrayList<String>) {
                 expansionList = response
-                profTierSelect.adapter = ArrayAdapter<String>(applicationContext, android.R.layout.simple_spinner_item, response.toTypedArray())
+                profTierSelect.adapter = ArrayAdapter<String>(applicationContext, R.layout.spinner_text, response.toTypedArray())
             }
             override fun onError(error: String) {
                 println("Error in getAllExpansions :" + error)
