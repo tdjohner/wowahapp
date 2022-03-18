@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.content.Context
-import android.os.SystemClock
 import android.view.*
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -154,11 +153,10 @@ class AddRecipeActivity : AppCompatActivity() {
                     recipeName?.let { it1 ->
                         UserDataService.subscribeRecipe((application as CustomApplication).getUserName(), it1, subscriptionRealmID, applicationContext)
                     }
+                    intent = Intent(this@AddRecipeActivity, HomeActivity::class.java)
+                    startActivity(intent)
                 }
             }
-            SystemClock.sleep(2000)
-            intent = Intent(this@AddRecipeActivity, HomeActivity::class.java)
-            startActivity(intent)
         }
 
         searchTextView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {

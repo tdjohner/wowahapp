@@ -59,7 +59,7 @@ type SubbedItem struct {
 func handleRequest() {
 
 	//Citation: configuring muxer to work with autocert lib
-	//https://stackoverflow.com/questions/50311532/autocert-using-gorilla-mux
+	// https://stackoverflow.com/questions/50311532/autocert-using-gorilla-mux
 	// https://blog.cloudflare.com/exposing-go-on-the-internet/
 	manager := &autocert.Manager {
 		Prompt: autocert.AcceptTOS,
@@ -70,6 +70,7 @@ func handleRequest() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", landingPage)
 	router.HandleFunc("/allrecipes/{realmID}", getAllRecipes)
+	router.HandleFunc("/recipes/{realmID}", getRecipes)
 	router.HandleFunc("/allprofessions/", getProfessions)
 	router.HandleFunc("/allexpansions/", getExpansions)
 	router.HandleFunc("/detailedlisting/{recipeName}/{realmID}", getDetailedListing)
@@ -134,6 +135,35 @@ func getItem(res http.ResponseWriter, req *http.Request) {
 	defer db.Close()
 	item := dbh.GetItemByName(vars["itemName"], db)
 	json.NewEncoder(res).Encode(item)
+}
+
+func getRecipes(res http.ResponseWriter, req *http.Request) {
+
+	vars := mux.Vars(req)
+	var recipeModels []RecipeModel
+	realmID := vars["realmID"]
+
+	connectionString := dbh.GetConnectionString()
+	db, err := sql.Open("mysql", connectionString)
+	if err != nil {
+		fmt.Println("Connection to database failed: " + err.Error())
+	}
+	defer db.Close()
+
+	recipeList := allRecipesOnConnectedRealm(vars["realmID"], db)
+
+	for i := range recipeList {
+
+		var newRecipe RecipeModel
+		listing := dbh.GetAuctionByName(recipeList[i], realmID, db)
+
+		newRecipe.Name = recipeList[i]
+		newRecipe.SalePrice = listing.Buyout + listing.UnitPrice
+		newRecipe.Cost = dbh.RecipeBaseCost(db, recipeList[i], realmID)
+		newRecipe.Realm, _ = strconv.Atoi(realmID)
+		recipeModels = append(recipeModels, newRecipe)
+	}
+	json.NewEncoder(res).Encode(recipeModels)
 }
 
 func getAllRecipes(res http.ResponseWriter, req *http.Request) {
