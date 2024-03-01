@@ -14,6 +14,29 @@ is highlighted as profitable.
 The application is aware of crafting materials listed at different prices,
 and can tell you how many of each item can be crafted at a profit.
 
-1. Drop the Android client.
-2. Swap server to classic.
-3. Get new front end.
+
+This document is to provide instructions for deploying our API code on a server. You’ll probably need to sudo a few of these commands.
+
+
+For the service:
+
+First navigate to /wowahapp
+$> git pull [whatever release branch]
+$> systemctl kill wowahapp
+$> systemctl daemon-reload
+$> cd /wowahapp/backend/src/wowahappAPI
+$> go build -o wowahapp
+$> setcap CAP_NET_BIND_SERVICE+eip /wowahapp/backend/src/wowahappAPI/wowahapp
+$> systemctl start wowahapp
+
+NOTE!!: It is VERY important that the executable be named ‘wowahapp’ because that’s what the startup service is set to look for.
+
+
+For the scraper:
+
+You just need to compile the executable with the proper name.
+$> go build /wowahapp/backend/src/scraper -o getAHData
+
+#If you need to edit the timing of the cron job or something
+#This line should allow you to edit the file where the command
+$> sudo crontab -e johnert2 
